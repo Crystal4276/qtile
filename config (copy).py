@@ -33,16 +33,9 @@ from qtile_extras.widget.decorations import RectDecoration
 from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule
 from libqtile.lazy import lazy
 from libqtile.widget import Spacer
-from extras import MyTaskList
-
-from libqtile.widget.base import _Widget
-from qtile_extras.images import ImgMask
-
 
 def txt_remove(text): 
-    text = ("") 
-    return text
-
+    return ""
 
 @hook.subscribe.startup_once
 def autostart():
@@ -50,6 +43,7 @@ def autostart():
     subprocess.Popen([home])
 
 mod = "mod4"
+
 
 
 @lazy.function
@@ -92,10 +86,10 @@ keys = [
     #    desc="Toggle between split and unsplit sides of stack",
     #),
 
-#Toggle minimization of all appararent window
-    Key([mod], "c", minimize_all(), desc="Toggle minimization of all window"),
+#Toggle minimization/fullscreen of appararent window
+    Key([mod],"c", minimize_all(), desc="Toggle minimization of all window"),
+    Key([mod],"f", lazy.window.toggle_fullscreen(), desc="Make window fullscreen"),
 
-   
  # Launch Applications
     Key([mod],"e", lazy.spawn("nemo"), desc="Launch nemo"),
     Key([mod],"w", lazy.spawn("/home/crystal/.config/rofi/bin/launcher"), desc="Launch rofi"),
@@ -232,13 +226,13 @@ layout_theme = {"border_width": 1,
 layouts = [
     # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2),
     layout.RatioTile(**layout_theme),
-    layout.Max(),
+    layout.Max(**layout_theme),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
     # layout.Matrix(),
     # layout.MonadTall(),
-    # layout.MonadWide(),
+     layout.MonadWide(**layout_theme),
     # layout.Tile(),
     # layout.TreeTab(),
     # layout.VerticalTile(),
@@ -287,7 +281,6 @@ screens = [
                 ),
                 widget.Spacer(length=10),                 
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
-                 #widget.LaunchBar(progs=[('chromium', 'chromium', 'Launch chromium'),('terminal', 'gnome-terminal', 'Launch gnome-terminal'),]),
                 widget.Prompt(),
                 widget.Chord(
                       chords_colors={
@@ -295,10 +288,11 @@ screens = [
                        },
                        name_transform=lambda name: name.upper(),
                 ),
-                widget.Spacer(), 
                 widget.TaskList(
-                       border=colors[3],
+                       highlight_method="block",
+                       border=colors[7],
                        borderwidth=0,
+                       background = colors[4],
                        icon_size = 40,
                        fontsize=25,
                        rounded = True,
@@ -308,9 +302,21 @@ screens = [
                        margin_y= 5,
                        spacing = 5,
                        parse_text=txt_remove,
-                       background = colors[4],
-#                       max_title_width = 100,  
-                       center_aligned=True,
+                       txt_floating="🗗",
+                       txt_maximized="🗖",
+                       txt_minimized="🗕",
+                ),
+                widget.Spacer(), 
+                widget.LaunchBar(progs=[
+                        ('org.gnome.Terminal', 'gnome-terminal', 'Launch terminal'),
+                        ('chromium', 'chromium', 'Launch Chromium'),
+                        ('steam', 'steam', 'Launch Steam'),
+                        ('evolution', 'evolution', 'Launch Evolution'),
+                        ('discord', 'discord', 'Launch Discord'),
+                        ('spotify', 'spotify', 'Launch Spotify'),
+                                       ], 
+                        padding = 15, 
+
                 ),
                 widget.Spacer(),
                 widget.CheckUpdates(
@@ -375,10 +381,11 @@ screens = [
                        **decor
                 ),
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
-                widget.Spacer(), 
                 widget.TaskList(
-                       border=colors[3],
-                       borderwidth= 0,
+                       highlight_method="block",
+                       border=colors[7],
+                       borderwidth=0,
+                       background = colors[4],
                        icon_size = 40,
                        fontsize=25,
                        rounded = True,
@@ -388,8 +395,9 @@ screens = [
                        margin_y= 5,
                        spacing = 5,
                        parse_text=txt_remove,
-                       background = colors[4], 
-                       center_aligned=True,
+                       txt_floating="🗗",
+                       txt_maximized="🗖",
+                       txt_minimized="🗕",
                 ),
                 widget.Spacer(), 
                 widget.Clock( 
@@ -426,10 +434,11 @@ screens = [
                        **decor
                 ),
                 widget.CurrentLayoutIcon(scale = 0.6, use_mask = False, foreground="#f5c2e7"),
-                widget.Spacer(), 
                 widget.TaskList(
-                       border=colors[3],
-                       borderwidth= 0,
+                       highlight_method="block",
+                       border=colors[7],
+                       borderwidth=0,
+                       background = colors[4],
                        icon_size = 40,
                        fontsize=25,
                        rounded = True,
@@ -439,8 +448,9 @@ screens = [
                        margin_y= 5,
                        spacing = 5,
                        parse_text=txt_remove,
-                       background = colors[4], 
-                       center_aligned=True,
+                       txt_floating="🗗",
+                       txt_maximized="🗖",
+                       txt_minimized="🗕",
                 ),
                 widget.Spacer(), 
                 widget.Clock( 

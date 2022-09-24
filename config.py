@@ -33,24 +33,9 @@ from qtile_extras.widget.decorations import RectDecoration
 from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule
 from libqtile.lazy import lazy
 from libqtile.widget import Spacer
-from extras import MyTaskList
-
-from libqtile.widget.base import _Widget
-from qtile_extras.images import ImgMask
-
 
 def txt_remove(text): 
-    text = ("") 
-    return text
-
-
-@hook.subscribe.startup_once
-def autostart():
-    home = os.path.expanduser('~/.config/qtile/autostart.sh')
-    subprocess.Popen([home])
-
-mod = "mod4"
-
+    return ""
 
 @lazy.function
 def minimize_all(qtile):
@@ -58,6 +43,7 @@ def minimize_all(qtile):
         if hasattr(win, "toggle_minimize"):
             win.toggle_minimize()
 
+mod = "mod4"
 
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -92,26 +78,28 @@ keys = [
     #    desc="Toggle between split and unsplit sides of stack",
     #),
 
-#Toggle minimization of all appararent window
-    Key([mod], "c", minimize_all(), desc="Toggle minimization of all window"),
+#Toggle minimization/fullscreen of appararent window
+    Key([mod],"c", minimize_all(), desc="Toggle minimization of all window"),
+    Key([mod],"f", lazy.window.toggle_fullscreen(), desc="Make window fullscreen"),
 
-   
  # Launch Applications
     Key([mod],"e", lazy.spawn("nemo"), desc="Launch nemo"),
     Key([mod],"w", lazy.spawn("/home/crystal/.config/rofi/bin/launcher"), desc="Launch rofi"),
     Key([mod],"x", lazy.spawn("xed"), desc="Launch xed editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch terminal"),
+    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 
  # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
+
+ # Qtile commands
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-
 ]
- # Send a window within a group to another group in left or right screens
+ 
+# Send a window within a group to group displayed in left or right screens
 def window_to_previous_screen(qtile, switch_group=False, switch_screen=False):
     i = qtile.screens.index(qtile.current_screen)
     if i != 0:
@@ -142,7 +130,7 @@ groups = [
     Group("5", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
     Group("6", label=""),
     Group("7", label="", matches=[Match(wm_class=["deluge"])],),
-    Group("8", label="", matches=[Match(wm_class=["evolution"])],layout = "max"),
+    Group("8", label="", matches=[Match(wm_class=["evolution","thunderbird"])],layout = "max"),
     Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
 ]
 
@@ -151,9 +139,6 @@ groups = [
 #### Key binding for group stick to screen
 def go_to_group(name: str):  
     def _inner(qtile) -> None:
-        if len(qtile.screens) == 1:
-            qtile.groups_map[name].cmd_toscreen()
-            return
         if name in "123":
             qtile.focus_screen(0)  
             qtile.groups_map[name].cmd_toscreen()
@@ -169,29 +154,19 @@ for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name))))
 
 
-#for i in groups:
-#    keys.extend(
-#        [
+for i in groups:
+    keys.extend(
+        [
             # mod1 + letter of group = switch to group
-#            Key(
-#                [mod],
-#                i.name,
-#                lazy.group[i.name].toscreen(),
-#                desc="Switch to group {}".format(i.name),
-#            ),
-            # mod1 + shift + letter of group = switch to & move focused window to group
-            #Key(
-            #    [mod, "shift"],
-            #    i.name,
-            #    lazy.window.togroup(i.name, switch_group=True),
-            #    desc="Switch to & move focused window to group {}".format(i.name),
-            #),
-            # Or, use below if you prefer not to switch to that group.
-            # # mod1 + shift + letter of group = move focused window to group
-#           Key([mod, "control"], i.name, lazy.window.togroup(i.name),
-#                 desc="move focused window to group {}".format(i.name)),
-#       ]
-#    )
+#            Key([mod], i.name, lazy.group[i.name].toscreen(), desc="Switch to group {}".format(i.name),),
+
+            # mod1 + control + letter of group = switch to & move focused window to group
+            Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), desc="Switch to & move focused window to group {}".format(i.name),),
+
+            # Or, use below if you prefer not to switch to that group. mod1 + shift + letter of group = move focused window to group
+           #Key([mod, "shift"], i.name, lazy.window.togroup(i.name), desc="move focused window to group {}".format(i.name)),
+       ]
+    )
 
 # COLORS FOR THE BAR
 #Theme name : Catppuccin Mocha
@@ -205,7 +180,7 @@ def init_colors():
             ["#45475a", "#45475a"], # color 6 Surface0 Catppuccin Mocha
             ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base Catppuccin Mocha 66% transparency
             ["#fab387", "#fab387"], # color 8 Peach Catppuccin Mocha
-            ["#313244", "#313244"]] # color 9
+            ["#45475a", "00000000"]] # color 9
 colors = init_colors()
 
 # Decoration setting for Rect.Decoraction
@@ -232,19 +207,18 @@ layout_theme = {"border_width": 1,
 layouts = [
     # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2),
     layout.RatioTile(**layout_theme),
-    layout.Max(),
+    layout.Max(**layout_theme),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
     # layout.Matrix(),
     # layout.MonadTall(),
-    # layout.MonadWide(),
+     layout.MonadWide(**layout_theme),
     # layout.Tile(),
     # layout.TreeTab(),
     # layout.VerticalTile(),
     # layout.Zoomy(),
 ]
-
 
 widget_defaults = dict(
     font="monospace",
@@ -287,7 +261,6 @@ screens = [
                 ),
                 widget.Spacer(length=10),                 
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
-                 #widget.LaunchBar(progs=[('chromium', 'chromium', 'Launch chromium'),('terminal', 'gnome-terminal', 'Launch gnome-terminal'),]),
                 widget.Prompt(),
                 widget.Chord(
                       chords_colors={
@@ -295,22 +268,37 @@ screens = [
                        },
                        name_transform=lambda name: name.upper(),
                 ),
-                widget.Spacer(), 
                 widget.TaskList(
-                       border=colors[3],
+                       highlight_method="block",
+                       border=colors[9],
                        borderwidth=0,
+                       background = colors[4],
                        icon_size = 40,
                        fontsize=25,
                        rounded = True,
-                       padding_x = 2,
-                       padding_y = 7,
+                       padding_x = 1,
+                       padding_y = 9,
                        margin_x= 5,
-                       margin_y= 5,
+                       margin_y= 4,
                        spacing = 5,
                        parse_text=txt_remove,
-                       background = colors[4],
-#                       max_title_width = 100,  
-                       center_aligned=True,
+                       txt_floating="🗗",
+                       txt_maximized="🗖",
+                       txt_minimized="🗕",
+                       theme_path="/usr/share/icons/Papirus-dark",
+                       theme_mode="preferred",
+                ),
+                widget.Spacer(), 
+                widget.LaunchBar(progs=[
+                        ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
+                        ('chromium', 'chromium', 'Launch Chromium'),
+                        ('discord', 'discord', 'Launch Discord'),
+                        ('spotify', 'spotify', 'Launch Spotify'),
+                        ('deluge', 'deluge', 'Launch deluge'),
+                        ('thunderbird', 'thunderbird', 'Launch thunderbird'),
+                        ('steam', 'steam', 'Launch Steam'),
+                                      ], 
+                        padding = 15, 
                 ),
                 widget.Spacer(),
                 widget.CheckUpdates(
@@ -375,21 +363,25 @@ screens = [
                        **decor
                 ),
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
-                widget.Spacer(), 
                 widget.TaskList(
-                       border=colors[3],
-                       borderwidth= 0,
+                       highlight_method="block",
+                       border=colors[9],
+                       borderwidth=0,
+                       background = colors[4],
                        icon_size = 40,
-                       fontsize=25,
+                       fontsize= 25,
                        rounded = True,
-                       padding_x = 2,
-                       padding_y = 7,
+                       padding_x = 1,
+                       padding_y = 9,
                        margin_x= 5,
-                       margin_y= 5,
+                       margin_y= 4,
                        spacing = 5,
                        parse_text=txt_remove,
-                       background = colors[4], 
-                       center_aligned=True,
+                       txt_floating="🗗",
+                       txt_maximized="🗖",
+                       txt_minimized="🗕",
+                       theme_path="/usr/share/icons/Papirus-dark",
+                       theme_mode="preferred",
                 ),
                 widget.Spacer(), 
                 widget.Clock( 
@@ -426,21 +418,25 @@ screens = [
                        **decor
                 ),
                 widget.CurrentLayoutIcon(scale = 0.6, use_mask = False, foreground="#f5c2e7"),
-                widget.Spacer(), 
                 widget.TaskList(
-                       border=colors[3],
-                       borderwidth= 0,
+                       highlight_method="block",
+                       border=colors[9],
+                       borderwidth=0,
+                       background = colors[4],
                        icon_size = 40,
                        fontsize=25,
                        rounded = True,
-                       padding_x = 2,
-                       padding_y = 7,
+                       padding_x = 1,
+                       padding_y = 9,
                        margin_x= 5,
-                       margin_y= 5,
+                       margin_y= 4,
                        spacing = 5,
                        parse_text=txt_remove,
-                       background = colors[4], 
-                       center_aligned=True,
+                       txt_floating="🗗",
+                       txt_maximized="🗖",
+                       txt_minimized="🗕",
+                       theme_path="/usr/share/icons/Papirus-dark",
+                       theme_mode="preferred",
                 ),
                 widget.Spacer(), 
                 widget.Clock( 
@@ -482,6 +478,7 @@ floating_layout = layout.Floating(
         Match(wm_class="ssh-askpass"),  # ssh-askpass
         Match(wm_class="blueberry.py"),  # blueberry-tray
         Match(wm_class="conky"),  # conky
+        Match(wm_class="cinnamon-settings screensaver"),  # conky
         Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
@@ -535,7 +532,10 @@ def window_added(group, window):
             if win.floating:
                 win.cmd_bring_to_front()
                 return
-
-
+# Autostart
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    subprocess.Popen([home])
 
 
