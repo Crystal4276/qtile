@@ -183,12 +183,12 @@ def init_colors():
             ["#45475a", "00000000"]] # color 9
 colors = init_colors()
 
-# Decoration setting for Rect.Decoraction
+# Decoration setting for group Rect.Decoraction
 decor = {
     "decorations": [
         RectDecoration(
-            colour=colors[6],
-            line_width= 2,
+            colour=colors[1],
+            line_width= 0,
             radius=20,
             filled=True,
             padding_y=5,
@@ -198,6 +198,22 @@ decor = {
     ],
 }
 
+# Decoration setting for group Rect.Decoraction
+decor_nogroup = {
+    "decorations": [
+        RectDecoration(
+            colour=colors[8],
+            line_width= 2,
+            radius=20,
+            filled=True,
+            padding_y=5,
+            padding_x=0,
+            group=False,
+        )
+    ],
+}
+
+
 # Layout configuration
 layout_theme = {"border_width": 1,
                 "margin": 4,
@@ -206,14 +222,14 @@ layout_theme = {"border_width": 1,
                 }
 layouts = [
     # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2),
+    layout.Matrix(**layout_theme),
     layout.RatioTile(**layout_theme),
     layout.Max(**layout_theme),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
-    # layout.Matrix(),
     # layout.MonadTall(),
-     layout.MonadWide(**layout_theme),
+    # layout.MonadWide(**layout_theme),
     # layout.Tile(),
     # layout.TreeTab(),
     # layout.VerticalTile(),
@@ -257,7 +273,7 @@ screens = [
                        urgent_text=colors[3],
                        borderwidth = 4,
                        visible_groups=['1', '2', '3'],
-                       **decor
+                       **decor_nogroup
                 ),
                 widget.Spacer(length=10),                 
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
@@ -289,7 +305,7 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(),
-                 
+              
                 widget.Spacer(),
                 widget.LaunchBar(progs=[
                         ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
@@ -301,7 +317,7 @@ screens = [
                         #('thunderbird', 'thunderbird', 'Launch thunderbird'),
                         #('steam', 'steam', 'Launch Steam'),
                                       ], 
-                        padding = 15, padding_y = -2, icon_size=40,**decor
+                        padding = 15, padding_y = -2, icon_size=45,**decor_nogroup
                 ),
                 widget.CheckUpdates(
                        font = "FontAwesome",
@@ -313,12 +329,12 @@ screens = [
                        no_update_string='',                      
                        colour_have_updates = colors[3],
                 ),
-                widget.Spacer(length=15), 
+                widget.Spacer(length=10), 
                 widget.Systray(
                        background=colors[4],
                        icon_size = 50,
                        padding = 10,
-                       #**decor
+                      # **decor_nogroup
                 ),
                 widget.Spacer(length=20),   
                 widget.Clock( 
@@ -364,7 +380,7 @@ screens = [
                        highlight_method='border',
                        borderwidth = 3,
                        visible_groups=['4', '5', '6'],
-                       **decor
+                       **decor_nogroup
                 ),
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
@@ -419,7 +435,7 @@ screens = [
                        highlight_method='border',
                        borderwidth = 3,
                        visible_groups=['7', '8', '9'],
-                       **decor
+                       **decor_nogroup
                 ),
                 widget.CurrentLayoutIcon(scale = 0.6, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
