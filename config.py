@@ -179,7 +179,7 @@ def init_colors():
             ["#f3f4f5", "#f3f4f5"], # color 5 White
             ["#45475a", "#45475a"], # color 6 Surface0 Catppuccin Mocha
             ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base Catppuccin Mocha 66% transparency
-            ["#fab387", "#fab387"], # color 8 Peach Catppuccin Mocha
+            ["#f3f4f515", "#f3f4f515"], # color 8 White 66 % Tranparency
             ["#45475a", "00000000"]] # color 9
 colors = init_colors()
 
@@ -201,7 +201,7 @@ decor = {
 # Layout configuration
 layout_theme = {"border_width": 1,
                 "margin": 4,
-                "border_focus": colors[3],
+                "border_focus": colors[2],
                 "border_normal": colors[6]
                 }
 layouts = [
@@ -236,7 +236,7 @@ screens = [
                        background = colors[4],
                        margin_y = 3, 
                        margin_x= 15,
-                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/rofi/bin/launcher")},         
+                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/rofi/bin/launcher")},
                 ),  
                 widget.Spacer(length=8),   
                 widget.GroupBox(
@@ -270,7 +270,7 @@ screens = [
                 ),
                 widget.TaskList(
                        highlight_method="block",
-                       border=colors[9],
+                       border=colors[8],
                        borderwidth=0,
                        background = colors[4],
                        icon_size = 40,
@@ -288,19 +288,21 @@ screens = [
                        theme_path="/usr/share/icons/Papirus-dark",
                        theme_mode="preferred",
                 ),
-                widget.Spacer(), 
+                widget.Spacer(),
+                 
+                widget.Spacer(),
                 widget.LaunchBar(progs=[
                         ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
+                        ('nemo', 'nemo', 'Launch File Manager'),
                         ('chromium', 'chromium', 'Launch Chromium'),
-                        ('discord', 'discord', 'Launch Discord'),
-                        ('spotify', 'spotify', 'Launch Spotify'),
-                        ('deluge', 'deluge', 'Launch deluge'),
-                        ('thunderbird', 'thunderbird', 'Launch thunderbird'),
-                        ('steam', 'steam', 'Launch Steam'),
+                        #('discord', 'discord', 'Launch Discord'),
+                        #('spotify', 'spotify', 'Launch Spotify'),
+                        #('deluge', 'deluge', 'Launch deluge'),
+                        #('thunderbird', 'thunderbird', 'Launch thunderbird'),
+                        #('steam', 'steam', 'Launch Steam'),
                                       ], 
-                        padding = 15, 
+                        padding = 15, padding_y = -2, icon_size=40,**decor
                 ),
-                widget.Spacer(),
                 widget.CheckUpdates(
                        font = "FontAwesome",
                        fontsize = 35,
@@ -311,10 +313,12 @@ screens = [
                        no_update_string='',                      
                        colour_have_updates = colors[3],
                 ),
+                widget.Spacer(length=15), 
                 widget.Systray(
                        background=colors[4],
                        icon_size = 50,
                        padding = 10,
+                       #**decor
                 ),
                 widget.Spacer(length=20),   
                 widget.Clock( 
@@ -365,7 +369,7 @@ screens = [
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
                        highlight_method="block",
-                       border=colors[9],
+                       border=colors[8],
                        borderwidth=0,
                        background = colors[4],
                        icon_size = 40,
@@ -420,7 +424,7 @@ screens = [
                 widget.CurrentLayoutIcon(scale = 0.6, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
                        highlight_method="block",
-                       border=colors[9],
+                       border=colors[8],
                        borderwidth=0,
                        background = colors[4],
                        icon_size = 40,
@@ -484,7 +488,7 @@ floating_layout = layout.Floating(
         Match(title="pinentry"),  # GPG key password entry
       #  Match(title="Steam - News"),  # Steam news pop-up windows
         Match(wm_class="nm-connection-editor") # network-manager connection editor
-    ], fullscreen_border_width = 0, border_width = 0, border_focus=colors[3], border_normal=colors[0]
+    ], fullscreen_border_width = 0, border_width = 2, border_focus=colors[2], border_normal=colors[6]
 )
 
 #layout_conky = layout.Floating(
