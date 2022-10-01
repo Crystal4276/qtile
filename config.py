@@ -89,6 +89,7 @@ keys = [
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch terminal"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    Key([mod],"s", lazy.spawn("gnome-screenshot --interactive"), desc="Launch screenshot"),
 
  # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
@@ -129,7 +130,7 @@ groups = [
     Group("4", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
     Group("5", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
     Group("6", label=""),
-    Group("7", label="", matches=[Match(wm_class=["deluge"])],),
+    Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "ratiotile"),
     Group("8", label="", matches=[Match(wm_class=["evolution","thunderbird"])],layout = "max"),
     Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
 ]
@@ -179,7 +180,7 @@ def init_colors():
             ["#f3f4f5", "#f3f4f5"], # color 5 White
             ["#45475a", "#45475a"], # color 6 Surface0 Catppuccin Mocha
             ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base Catppuccin Mocha 66% transparency
-            ["#f3f4f515", "#f3f4f515"], # color 8 White 66 % Tranparency
+            ["#f3f4f500", "#f3f4f500"], # color 8 White 66 % Tranparency
             ["#45475a", "00000000"]] # color 9
 colors = init_colors()
 
@@ -187,31 +188,47 @@ colors = init_colors()
 decor = {
     "decorations": [
         RectDecoration(
-            colour=colors[1],
+            colour="#45475a",
             line_width= 0,
             radius=20,
             filled=True,
-            padding_y=5,
+            padding_y=10,
             padding_x=0,
             group=True,
         )
     ],
 }
 
-# Decoration setting for group Rect.Decoraction
+# Decoration setting for no grouping Rect.Decoraction
 decor_nogroup = {
     "decorations": [
         RectDecoration(
-            colour=colors[8],
-            line_width= 2,
+            colour="#45475a",
+            line_width= 0,
             radius=20,
             filled=True,
-            padding_y=5,
+            padding_y=10,
             padding_x=0,
             group=False,
         )
     ],
 }
+
+# Decoration setting for no grouping side screen Rect.Decoraction
+decor_side = {
+    "decorations": [
+        RectDecoration(
+            colour="#45475a",
+            line_width=0,
+            radius=20,
+            filled=True,
+            padding_y=7,
+            padding_x=0,
+            group=False,
+        )
+    ],
+}
+
 
 
 # Layout configuration
@@ -222,7 +239,7 @@ layout_theme = {"border_width": 1,
                 }
 layouts = [
     # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2),
-    layout.Matrix(**layout_theme),
+    # layout.Matrix(**layout_theme),
     layout.RatioTile(**layout_theme),
     layout.Max(**layout_theme),
     # Try more layouts by unleashing below layouts.
@@ -247,13 +264,28 @@ screens = [
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(length=15),   
                 widget.Image(
                        filename="/home/crystal/Pictures/Icons/arch-catppuccin.png",
-                       background = colors[4],
+                       background = colors[1],
                        margin_y = 3, 
-                       margin_x= 15,
+                       margin_x= 0,
                        mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/rofi/bin/launcher")},
+                       #**decor_nogroup
                 ),  
+                widget.Spacer(length=5), 
+                widget.LaunchBar(progs=[
+                        ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
+                        ('nemo', 'nemo', 'Launch File Manager'),
+                        ('chromium', 'chromium', 'Launch Chromium'),
+                        #('discord', 'discord', 'Launch Discord'),
+                        #('spotify', 'spotify', 'Launch Spotify'),
+                        #('deluge', 'deluge', 'Launch deluge'),
+                        #('thunderbird', 'thunderbird', 'Launch thunderbird'),
+                        #('steam', 'steam', 'Launch Steam'),
+                                      ], 
+                        padding = 15, padding_y = -2, icon_size=40,**decor_nogroup
+                ),
                 widget.Spacer(length=8),   
                 widget.GroupBox(
                        font="monospace",
@@ -275,8 +307,7 @@ screens = [
                        visible_groups=['1', '2', '3'],
                        **decor_nogroup
                 ),
-                widget.Spacer(length=10),                 
-                widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
+                widget.Spacer(length=5),                 
                 widget.Prompt(),
                 widget.Chord(
                       chords_colors={
@@ -286,9 +317,9 @@ screens = [
                 ),
                 widget.TaskList(
                        highlight_method="block",
-                       border=colors[8],
+                       border=colors[1],
                        borderwidth=0,
-                       background = colors[4],
+                       background = colors[1],
                        icon_size = 40,
                        fontsize=25,
                        rounded = True,
@@ -305,20 +336,6 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(),
-              
-                widget.Spacer(),
-                widget.LaunchBar(progs=[
-                        ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
-                        ('nemo', 'nemo', 'Launch File Manager'),
-                        ('chromium', 'chromium', 'Launch Chromium'),
-                        #('discord', 'discord', 'Launch Discord'),
-                        #('spotify', 'spotify', 'Launch Spotify'),
-                        #('deluge', 'deluge', 'Launch deluge'),
-                        #('thunderbird', 'thunderbird', 'Launch thunderbird'),
-                        #('steam', 'steam', 'Launch Steam'),
-                                      ], 
-                        padding = 15, padding_y = -2, icon_size=45,**decor_nogroup
-                ),
                 widget.CheckUpdates(
                        font = "FontAwesome",
                        fontsize = 35,
@@ -331,16 +348,21 @@ screens = [
                 ),
                 widget.Spacer(length=10), 
                 widget.Systray(
-                       background=colors[4],
-                       icon_size = 50,
+                       background=colors[1],
+                       icon_size = 40,
                        padding = 10,
-                      # **decor_nogroup
+                       **decor
                 ),
-                widget.Spacer(length=20),   
+                widget.Spacer(length=10),   
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[0]), 
+                widget.Spacer(length=5),   
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[0],
-                       fontsize = 30,
+                       fontsize = 25,
                        format="%H:%M",
                        **decor, 
                 ),
@@ -348,16 +370,15 @@ screens = [
                        exit_script='poweroff',
                        font = "FontAwesome", 
                        default_text="", 
-                       fontsize=35, 
+                       fontsize=30, 
                        foreground=colors[0], 
-                       margin_x = 0, 
-                       padding=10,
-                       countdown_format= "{}",
+                       padding=5,
+                       countdown_format= "{} ",
                        **decor, 
                 ),
-                widget.Spacer(length=15), 
+                widget.Spacer(length=15,), 
            ],
-        55, background=colors[4], margin = [3,3,0,3],
+        60, background=colors[1], margin = [6,3,0,3], opacity=0.8,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
@@ -368,10 +389,10 @@ screens = [
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 35,
-                       margin_x = 15,
+                       margin_x = 10,
                        spacing = 0,
                        margin_y = 2,
-                       padding = 6,
+                       padding = 5,
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
@@ -380,9 +401,8 @@ screens = [
                        highlight_method='border',
                        borderwidth = 3,
                        visible_groups=['4', '5', '6'],
-                       **decor_nogroup
+                       **decor_side
                 ),
-                widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
                        highlight_method="block",
                        border=colors[8],
@@ -404,10 +424,14 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.CurrentLayoutIcon(scale = 0.60, use_mask = True, foreground=colors[0]),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[0],
-                       fontsize = 30,
+                       fontsize = 25,
                        format="%H:%M",
                        **decor
                 ), 
@@ -423,9 +447,9 @@ screens = [
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 36,
-                       margin_x = 15,
+                       margin_x = 10,
                        spacing = 0,
-                       margin_y = 2,
+                       margin_y = 4,
                        padding = 6,
                        disable_drag = True,
                        active = colors[3],
@@ -435,9 +459,8 @@ screens = [
                        highlight_method='border',
                        borderwidth = 3,
                        visible_groups=['7', '8', '9'],
-                       **decor_nogroup
+                       **decor_side
                 ),
-                widget.CurrentLayoutIcon(scale = 0.6, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
                        highlight_method="block",
                        border=colors[8],
@@ -459,10 +482,14 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.CurrentLayoutIcon(scale = 0.6, use_mask = True, foreground=colors[0]),
                 widget.Clock( 
                        padding_y = -5,
                        foreground = colors[0],
-                       fontsize = 30,
+                       fontsize = 25,
                        format="%H:%M",
                        **decor
                 ), 
