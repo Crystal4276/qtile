@@ -28,11 +28,14 @@ import os
 import subprocess
 
 from libqtile import bar, layout, hook
+from libqtile.log_utils import logger
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration
-from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule
+
+from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule, DropDown
 from libqtile.lazy import lazy
 from libqtile.widget import Spacer
+
 
 def txt_remove(text): 
     return ""
@@ -85,17 +88,18 @@ keys = [
  # Launch Applications
     Key([mod],"e", lazy.spawn("nemo"), desc="Launch nemo"),
     Key([mod],"w", lazy.spawn("/home/crystal/.config/rofi/bin/launcher"), desc="Launch rofi"),
-    Key([mod],"x", lazy.spawn("xed"), desc="Launch xed editor"),
+    Key([mod],"x", lazy.spawn("geany"), desc="Launch geany editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch terminal"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([mod],"s", lazy.spawn("gnome-screenshot --interactive"), desc="Launch screenshot"),
+    Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch screenshot"),
 
  # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
 
  # Qtile commands
+    Key([mod, "mod1"], "r", lazy.restart(), desc="Restart Qtile"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
 ]
@@ -124,7 +128,7 @@ keys.extend([
 ])
 
 groups = [
-    Group("1", label=""),
+    Group("1", label="", matches=[Match(wm_class=["chromium"])],layout = "ratiotile"),
     Group("2", label=""),
     Group("3", label=""), 
     Group("4", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
@@ -184,6 +188,22 @@ def init_colors():
             ["#45475a", "00000000"]] # color 9
 colors = init_colors()
 
+# Decoration setting for systray Rect.Decoraction
+decor_systray = {
+    "decorations": [
+        RectDecoration(
+            colour="#45475a",
+            line_width= 0,
+            radius=20,
+            filled=True,
+            padding_y=10,
+            padding_x=0,
+            extrawidth=10,
+            group=False,
+        )
+    ],
+}
+
 # Decoration setting for group Rect.Decoraction
 decor = {
     "decorations": [
@@ -228,7 +248,6 @@ decor_side = {
         )
     ],
 }
-
 
 
 # Layout configuration
@@ -321,8 +340,6 @@ screens = [
                        borderwidth=0,
                        background = colors[1],
                        icon_size = 40,
-                       fontsize=25,
-                       rounded = True,
                        padding_x = 1,
                        padding_y = 9,
                        margin_x= 5,
@@ -344,19 +361,20 @@ screens = [
                        display_format = "  {updates}",
                        mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},         
                        no_update_string='',                      
-                       colour_have_updates = colors[3],
+                       colour_have_updates = colors[3], **decor
                 ),
                 widget.Spacer(length=10), 
                 widget.Systray(
                        background=colors[1],
                        icon_size = 40,
                        padding = 10,
-                       **decor
+                       **decor_systray
                 ),
                 widget.Spacer(length=10),   
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.CPU(format=" :{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.Memory(format=":{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.Spacer(length=5),   
                 widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[0]), 
                 widget.Spacer(length=5),   
                 widget.Clock( 
@@ -369,11 +387,11 @@ screens = [
                 widget.ScriptExit(
                        exit_script='poweroff',
                        font = "FontAwesome", 
-                       default_text="", 
+                       default_text=" ", 
                        fontsize=30, 
                        foreground=colors[0], 
                        padding=5,
-                       countdown_format= "{} ",
+                       countdown_format= "{}  ",
                        **decor, 
                 ),
                 widget.Spacer(length=15,), 
@@ -424,7 +442,7 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.CPU(format=" :{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.CurrentLayoutIcon(scale = 0.60, use_mask = True, foreground=colors[0]),
@@ -482,7 +500,7 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
+                widget.CPU(format=" :{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
                 widget.CurrentLayoutIcon(scale = 0.6, use_mask = True, foreground=colors[0]),
@@ -523,9 +541,11 @@ floating_layout = layout.Floating(
         Match(wm_class="makebranch"),  # gitk
         Match(wm_class="maketag"),  # gitk
         Match(wm_class="ssh-askpass"),  # ssh-askpass
+        Match(wm_class="gnome-disks"),  # gnome disk utility
         Match(wm_class="blueberry.py"),  # blueberry-tray
         Match(wm_class="conky"),  # conky
-        Match(wm_class="cinnamon-settings screensaver"),  # conky
+        Match(wm_class="cinnamon-settings screensaver"),  # screensaver
+        Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
         Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
@@ -584,5 +604,4 @@ def window_added(group, window):
 def autostart():
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.Popen([home])
-
-
+    

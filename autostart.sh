@@ -23,8 +23,6 @@ discord &
 spotify &
 steam &
 
-qtile cmd-obj -o widget systray -f eval -a "self.decorations[0]._extrawidth=10" &
-qtile cmd-obj -o widget systray -f eval -a "self.bar.draw()" &
 
 
 
