@@ -87,7 +87,7 @@ keys = [
 
  # Launch Applications
     Key([mod],"e", lazy.spawn("nemo"), desc="Launch nemo"),
-    Key([mod],"w", lazy.spawn("/home/crystal/.config/rofi/bin/launcher"), desc="Launch rofi"),
+    Key([mod],"w", lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher"), desc="Launch rofi"),
     Key([mod],"x", lazy.spawn("geany"), desc="Launch geany editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch terminal"),
@@ -285,11 +285,11 @@ screens = [
             [
                 widget.Spacer(length=15),   
                 widget.Image(
-                       filename="/home/crystal/Pictures/Icons/arch-catppuccin.png",
+                       filename="/home/crystal/.config/qtile/images/arch-catppuccin.png",
                        background = colors[1],
                        margin_y = 3, 
                        margin_x= 0,
-                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/rofi/bin/launcher")},
+                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher")},
                        #**decor_nogroup
                 ),  
                 widget.Spacer(length=5), 
@@ -546,7 +546,8 @@ floating_layout = layout.Floating(
         Match(wm_class="conky"),  # conky
         Match(wm_class="cinnamon-settings screensaver"),  # screensaver
         Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
-        Match(title="branchdialog"),  # gitk
+        Match(wm_class="virt-manager"), # Virtual Manager
+                Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
       #  Match(title="Steam - News"),  # Steam news pop-up windows
