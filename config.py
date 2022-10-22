@@ -285,7 +285,7 @@ screens = [
             [
                 widget.Spacer(length=15),   
                 widget.Image(
-                       filename="/home/crystal/.config/qtile/images/arch-catppuccin.png",
+                       filename="~/.config/qtile/images/arch-catppuccin.png",
                        background = colors[1],
                        margin_y = 3, 
                        margin_x= 0,
@@ -399,8 +399,11 @@ screens = [
         60, background=colors[1], margin = [6,3,0,3], opacity=0.8,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
-        ),
-    ),
+        ), 
+                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+					   wallpaper_mode="fill",
+					   
+	),
     Screen(
         top=bar.Bar(
             [
@@ -458,7 +461,10 @@ screens = [
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
-        ),),
+        ),                       
+					   wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+					   wallpaper_mode="fill",
+        ),
     Screen(
         top=bar.Bar(
             [
@@ -517,6 +523,8 @@ screens = [
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
+                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+					   wallpaper_mode="fill",
     ),   
 ]
 

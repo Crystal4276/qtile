@@ -8,7 +8,7 @@
 #starting utility applications at boot time
 nm-applet &
 #pamac-tray &
-nitrogen --restore &
+#nitrogen --restore &
 picom --config $HOME/.config/qtile/scripts/picom.conf --experimental-backends &
 blueberry-tray &
 # /home/crystal/.conky/conky-startup.sh
