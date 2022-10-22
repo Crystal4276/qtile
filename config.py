@@ -596,17 +596,17 @@ wmname = "Qtile"
 @hook.subscribe.client_name_updated
 def spotify(window):
     if window.name == "Spotify":
-        window.cmd_togroup(group_name="5")
+        window.togroup(group_name="5")
 
 # Keep floating window always above
 @hook.subscribe.group_window_add
 def window_added(group, window):
     if window.floating:
-        window.cmd_bring_to_front()
+        window.to_front()
     else:
         for win in reversed(group.focus_history):
             if win.floating:
-                win.cmd_bring_to_front()
+                win.to_front()
                 return
 # Autostart
 @hook.subscribe.startup_once
