@@ -128,7 +128,7 @@ keys.extend([
 ])
 
 groups = [
-    Group("1", label="", matches=[Match(wm_class=["chromium"])],layout = "ratiotile"),
+    Group("1", label=""),
     Group("2", label=""),
     Group("3", label=""), 
     Group("4", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
@@ -224,7 +224,7 @@ decor_clock = {
         RectDecoration(
             colour="#94e2d5",
             line_width= 0,
-            radius=20,
+            radius=[15, 15, 15, 15],
             filled=True,
             padding_y=10,
             padding_x=0,
@@ -238,11 +238,11 @@ decor_cpu = {
         RectDecoration(
             colour="#fab387",
             line_width= 0,
-            radius=[20, 20, 20, 20],
+            radius=[15, 15, 15, 15],
             filled=True,
             padding_y=10,
             padding_x=0,
-            group=False,
+            group=True,
             clip=False,
         )
     ],
@@ -251,16 +251,18 @@ decor_cpu = {
 # Decoration setting for group gpu Rect.Decoraction
 decor_gpu = {
     "decorations": [
-        RectDecoration(
+            RectDecoration(
+            #use_widget_background=True,
             colour="#f9e2af",
 			line_width= 0,
-            radius=[20, 20, 20, 20],
+            radius=[15, 15, 15, 15],
             filled=True,
             padding_y=10,
             padding_x=0,
-            group=False,
+            group=True,
             clip=False,
-        )
+        ),
+			#PowerLineDecoration(path="forward_slash",size=30,shift=-50,padding_y=10),
     ],
 }
 # Decoration setting for group mem Rect.Decoraction
@@ -269,7 +271,7 @@ decor_mem = {
         RectDecoration(
             colour="#a6e3a1",
             line_width= 0,
-            radius=[20, 20, 20, 20],
+            radius=[15, 15, 15, 15],
             filled=True,
             margin_y=20,
             padding_y=10,
@@ -285,7 +287,7 @@ decor_nogroup = {
         RectDecoration(
             colour="#45475a",
             line_width= 0,
-            radius=20,
+            radius=[15, 15, 15, 15],
             filled=True,
             padding_y=10,
             padding_x=0,
@@ -300,7 +302,7 @@ decor_side = {
         RectDecoration(
             colour="#45475a",
             line_width=0,
-            radius=20,
+            radius=[15, 15, 15, 15],
             filled=True,
             padding_y=7,
             padding_x=0,
@@ -346,13 +348,14 @@ screens = [
                 widget.Spacer(length=15),   
                 widget.Image(
                        filename="~/.config/qtile/images/arch-catppuccin.png",
-                       background = colors[1],
+                       background = colors[4],
                        margin_y = 3, 
                        margin_x= 0,
                        mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher")},
                        #**decor_nogroup
                 ),  
                 widget.Spacer(length=5), 
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
            #     widget.LaunchBar(progs=[
            #             ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
            #             ('nemo', 'nemo', 'Launch File Manager'),
@@ -394,11 +397,12 @@ screens = [
                        },
                        name_transform=lambda name: name.upper(),
                 ),  
+                widget.Spacer(length=5),     
 				widget.TaskList(
                        highlight_method="block",
-                       border=colors[1],
+                       border=colors[4],
                        borderwidth=0,
-                       background = colors[1],
+                       background = colors[4],
                        icon_size = 40,
                        padding_x = 1,
                        padding_y = 9,
@@ -414,7 +418,7 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.WindowName(fontsize=25, empty_group_string=" "),
+                widget.WindowName(fontsize=24, empty_group_string="",foreground=colors[0]),
                 widget.Spacer(),
                 widget.CheckUpdates(
                        font = "FontAwesome",
@@ -428,7 +432,7 @@ screens = [
                 ),
                 widget.Spacer(length=10), 
                 widget.Systray(
-                       background=colors[1],
+                       background=colors[4],
                        icon_size = 40,
                        padding = 10,
                        #**decor_systray
@@ -440,14 +444,12 @@ screens = [
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], update_interval=5, **decor_gpu),
                 widget.Spacer(length=10), 
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
-                widget.Spacer(length=5),   
-                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[5]), 
-                widget.Spacer(length=5),   
+                widget.Spacer(length=10),   
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[9],
-                       fontsize = 25,
-                       format="%H:%M",
+                       fontsize = 24,
+                       format="%A %d, %H:%M",
                        **decor_clock, 
                 ),
                 widget.ScriptExit(
@@ -462,7 +464,7 @@ screens = [
                 ),
                 widget.Spacer(length=15,), 
            ],
-        60, background=colors[1], margin = [6,3,3,3], opacity=1,
+        60, background=colors[4], margin = [3,3,0,3], opacity=1,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ), 
@@ -473,6 +475,8 @@ screens = [
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(length=5), 
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 35,
@@ -511,18 +515,30 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=" :{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.CurrentLayoutIcon(scale = 0.60, use_mask = True, foreground=colors[0]),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],update_interval=5, **decor_cpu),
+                widget.Spacer(length=10), 
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], update_interval=5, **decor_gpu),
+                widget.Spacer(length=10), 
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
+                widget.Spacer(length=10),   
                 widget.Clock( 
                        padding = 10,
-                       foreground = colors[0],
+                       foreground = colors[9],
                        fontsize = 25,
                        format="%H:%M",
-                       **decor
-                ), 
-                widget.Spacer(length=5), 
+                       **decor_clock, 
+                ),
+                widget.ScriptExit(
+                       exit_script='poweroff',
+                       font = "FontAwesome", 
+                       default_text=" ", 
+                       fontsize=29, 
+                       foreground="#181825", 
+                       padding=5,
+                       countdown_format= "{}  ",
+                       **decor_clock, 
+                ),
+                widget.Spacer(length=15,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
@@ -534,6 +550,8 @@ screens = [
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(length=5), 
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 36,
@@ -572,18 +590,30 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=" :{load_percent:2.0f}%", fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.Memory(format=":{MemUsed:.0f}{mm}", measure_mem='G', fontsize=25, foreground=colors[0],update_interval=5, **decor),
-                widget.CurrentLayoutIcon(scale = 0.6, use_mask = True, foreground=colors[0]),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],update_interval=5, **decor_cpu),
+                widget.Spacer(length=10), 
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], update_interval=5, **decor_gpu),
+                widget.Spacer(length=10), 
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
+                widget.Spacer(length=10),   
                 widget.Clock( 
-                       padding_y = -5,
-                       foreground = colors[0],
+                       padding = 10,
+                       foreground = colors[9],
                        fontsize = 25,
                        format="%H:%M",
-                       **decor
-                ), 
-                widget.Spacer(length=5), 
+                       **decor_clock, 
+                ),
+                widget.ScriptExit(
+                       exit_script='poweroff',
+                       font = "FontAwesome", 
+                       default_text=" ", 
+                       fontsize=29, 
+                       foreground="#181825", 
+                       padding=5,
+                       countdown_format= "{}  ",
+                       **decor_clock, 
+                ),
+                widget.Spacer(length=15,),
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
