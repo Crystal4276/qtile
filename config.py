@@ -236,15 +236,17 @@ decor_clock = {
 decor_cpu = {
     "decorations": [
         RectDecoration(
-            colour="#fab387",
+            use_widget_background=True,
+            #colour="#fab387",
             line_width= 0,
-            radius=[15, 15, 15, 15],
+            radius=[15, 0, 0, 15],
             filled=True,
             padding_y=10,
             padding_x=0,
             group=True,
             clip=False,
-        )
+        ),
+        PowerLineDecoration(path="rounded_right",size=15,shift=0,padding_y=9),
     ],
 }
 
@@ -252,17 +254,17 @@ decor_cpu = {
 decor_gpu = {
     "decorations": [
             RectDecoration(
-            #use_widget_background=True,
-            colour="#f9e2af",
+            use_widget_background=True,
+            #colour="#f9e2af",
 			line_width= 0,
-            radius=[15, 15, 15, 15],
+            radius=[0, 0, 0, 0],
             filled=True,
             padding_y=10,
             padding_x=0,
             group=True,
             clip=False,
         ),
-			#PowerLineDecoration(path="forward_slash",size=30,shift=-50,padding_y=10),
+			PowerLineDecoration(path="rounded_right",size=15,shift=0,padding_y=9),
     ],
 }
 # Decoration setting for group mem Rect.Decoraction
@@ -271,7 +273,24 @@ decor_mem = {
         RectDecoration(
             colour="#a6e3a1",
             line_width= 0,
-            radius=[15, 15, 15, 15],
+            radius=[0, 15, 15, 0],
+            filled=True,
+            margin_y=20,
+            padding_y=10,
+            padding_x=0,
+            group=True,
+            clip=False,
+        )
+    ],
+}
+# Decoration setting for group mem Rect.Decoraction
+decor_spacer = {
+    "decorations": [
+        RectDecoration(
+            use_widget_background=True,
+            #colour="#45475a",
+            line_width= 0,
+            radius=[0, 0, 0, 0],
             filled=True,
             margin_y=20,
             padding_y=10,
@@ -424,7 +443,7 @@ screens = [
                        font = "FontAwesome",
                        fontsize = 35,
                        custom_command = "checkupdates", 
-                       update_interval = 3600,
+                       update_interval = 86400,
                        display_format = "  {updates}",
                        mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},         
                        no_update_string='',                      
@@ -438,11 +457,9 @@ screens = [
                        #**decor_systray
                 ),
                 widget.Spacer(length=10), 
-                #widget.TextBox(offset = 5, text = '', x = 50, **decor_cpu),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],update_interval=5, **decor_cpu),
-                widget.Spacer(length=10), 
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], update_interval=5, **decor_gpu),
-                widget.Spacer(length=10), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
                 widget.Spacer(length=10),   
                 widget.Clock( 
@@ -475,7 +492,6 @@ screens = [
     Screen(
         top=bar.Bar(
             [
-                widget.Spacer(length=5), 
                 widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
@@ -515,10 +531,9 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],update_interval=5, **decor_cpu),
-                widget.Spacer(length=10), 
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], update_interval=5, **decor_gpu),
-                widget.Spacer(length=10), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
                 widget.Spacer(length=10),   
                 widget.Clock( 
@@ -550,7 +565,6 @@ screens = [
     Screen(
         top=bar.Bar(
             [
-                widget.Spacer(length=5), 
                 widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
@@ -590,12 +604,11 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],update_interval=5, **decor_cpu),
-                widget.Spacer(length=10), 
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], update_interval=5, **decor_gpu),
-                widget.Spacer(length=10), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
-                widget.Spacer(length=10),   
+                widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[9],
