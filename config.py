@@ -37,7 +37,7 @@ from libqtile.lazy import lazy
 from libqtile.widget import Spacer
 
 
-def txt_remove(text): 
+def txt_remove(text):
     return ""
 
 @lazy.function
@@ -59,17 +59,17 @@ keys = [
     #Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
     # Move windows between left/right columns or move up/down in current stack.
     # Moving out of range in Columns layout will create new column.
-    #Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
-    #Key([mod, "control"], "Right", lazy.layout.shuffle_right(), desc="Move window to the right"),
-    #Key([mod, "control"], "Down", lazy.layout.shuffle_down(), desc="Move window down"),
-    #Key([mod, "control"], "Up", lazy.layout.shuffle_up(), desc="Move window up"),
+    Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
+    Key([mod, "control"], "Right", lazy.layout.shuffle_right(), desc="Move window to the right"),
+    Key([mod, "control"], "Down", lazy.layout.shuffle_down(), desc="Move window down"),
+    Key([mod, "control"], "Up", lazy.layout.shuffle_up(), desc="Move window up"),
     # Grow windows. If current window is on the edge of screen and direction
     # will be to screen edge - window would shrink.
-    #Key([mod, "shift"], "Left", lazy.layout.grow_left(), desc="Grow window to the left"),
-    #Key([mod, "shift"], "Right", lazy.layout.grow_right(), desc="Grow window to the right"),
-    #Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
-    #Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
-    #Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod, "shift"], "Left", lazy.layout.grow_left(), desc="Grow window to the left"),
+    Key([mod, "shift"], "Right", lazy.layout.grow_right(), desc="Grow window to the right"),
+    Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
+    Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
+    Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -103,23 +103,33 @@ keys = [
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
 ]
- 
-# Send a window within a group to group displayed in left or right screens
+
+# Send a window within a group to group displayed in left or right screens, three monitors, monitor 0 is central monitor. 
 def window_to_previous_screen(qtile, switch_group=False, switch_screen=False):
     i = qtile.screens.index(qtile.current_screen)
-    if i != 0:
-        group = qtile.screens[i - 1].group.name
-        qtile.current_window.togroup(group, switch_group=switch_group)
-        if switch_screen == True:
-            qtile.cmd_to_screen(i - 1)
-
-def window_to_next_screen(qtile, switch_group=False, switch_screen=False):
-    i = qtile.screens.index(qtile.current_screen)
-    if i + 1 != len(qtile.screens):
+    if i == 0:
         group = qtile.screens[i + 1].group.name
         qtile.current_window.togroup(group, switch_group=switch_group)
         if switch_screen == True:
-            qtile.cmd_to_screen(i + 1)
+            qtile.to_screen(i + 1)
+    if i == 2:
+        group = qtile.screens[i - 2].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i - 2)
+
+def window_to_next_screen(qtile, switch_group=False, switch_screen=False):
+    i = qtile.screens.index(qtile.current_screen)
+    if i == 0:
+        group = qtile.screens[i + 2].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i + 2)
+    if i == 1:
+        group = qtile.screens[i - 1].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i - 1)
 
 keys.extend([
     # MOVE WINDOW TO NEXT SCREEN
@@ -134,21 +144,18 @@ groups = [
     Group("4", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
     Group("5", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
     Group("6", label=""),
-    Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "ratiotile"),
+    Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "columns"),
     Group("8", label="", matches=[Match(wm_class=["evolution","thunderbird"])],layout = "max"),
     Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
 ]
-
-
-
 #### Key binding for group stick to screen
-def go_to_group(name: str):  
+def go_to_group(name: str):
     def _inner(qtile) -> None:
         if name in "123":
-            qtile.focus_screen(0)  
+            qtile.focus_screen(0)
             qtile.groups_map[name].cmd_toscreen()
         elif name in "456":
-            qtile.focus_screen(1)  
+            qtile.focus_screen(1)
             qtile.groups_map[name].cmd_toscreen()
         else:
             qtile.focus_screen(2)
@@ -158,15 +165,14 @@ def go_to_group(name: str):
 for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name))))
 
-
 for i in groups:
     keys.extend(
         [
             # mod1 + letter of group = switch to group
 #            Key([mod], i.name, lazy.group[i.name].toscreen(), desc="Switch to group {}".format(i.name),),
 
-            # mod1 + control + letter of group = switch to & move focused window to group
-            Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), desc="Switch to & move focused window to group {}".format(i.name),),
+            # mod1 + control + letter of group = switch to & move focused window to group and screen
+            Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name),),
 
             # Or, use below if you prefer not to switch to that group. mod1 + shift + letter of group = move focused window to group
            #Key([mod, "shift"], i.name, lazy.window.togroup(i.name), desc="move focused window to group {}".format(i.name)),
@@ -338,9 +344,9 @@ layout_theme = {"border_width": 1,
                 "border_normal": colors[6]
                 }
 layouts = [
-    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2),
+    layout.Columns(**layout_theme),
     # layout.Matrix(**layout_theme),
-    layout.RatioTile(**layout_theme),
+    #layout.RatioTile(**layout_theme),
     layout.Max(**layout_theme),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
@@ -436,27 +442,27 @@ screens = [
                        theme_path="/usr/share/icons/Papirus-dark",
                        theme_mode="preferred",
                 ),
-                widget.Spacer(), 
+                widget.Spacer(),
                 widget.WindowName(fontsize=24, empty_group_string="",foreground=colors[0]),
                 widget.Spacer(),
                 widget.CheckUpdates(
                        font = "FontAwesome",
                        fontsize = 35,
-                       custom_command = "checkupdates", 
+                       custom_command = "checkupdates",
                        update_interval = 86400,
                        display_format = "  {updates}",
-                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},         
-                       no_update_string='',                      
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
+                       no_update_string='',
                        colour_have_updates = colors[3], **decor
                 ),
-                widget.Spacer(length=10), 
+                widget.Spacer(length=10),
                 widget.Systray(
                        background=colors[4],
                        icon_size = 40,
                        padding = 10,
                        #**decor_systray
                 ),
-                widget.Spacer(length=10), 
+                widget.Spacer(length=10),
                 widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
                 widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
@@ -492,6 +498,7 @@ screens = [
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(-8), 
                 widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
@@ -553,7 +560,7 @@ screens = [
                        countdown_format= "{}  ",
                        **decor_clock, 
                 ),
-                widget.Spacer(length=15,), 
+                widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
@@ -565,6 +572,7 @@ screens = [
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(-8), 
                 widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
@@ -626,7 +634,7 @@ screens = [
                        countdown_format= "{}  ",
                        **decor_clock, 
                 ),
-                widget.Spacer(length=15,),
+                widget.Spacer(length=3),
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
