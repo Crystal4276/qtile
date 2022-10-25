@@ -153,13 +153,13 @@ def go_to_group(name: str):
     def _inner(qtile) -> None:
         if name in "123":
             qtile.focus_screen(0)
-            qtile.groups_map[name].cmd_toscreen()
+            qtile.groups_map[name].toscreen()
         elif name in "456":
             qtile.focus_screen(1)
-            qtile.groups_map[name].cmd_toscreen()
+            qtile.groups_map[name].toscreen()
         else:
             qtile.focus_screen(2)
-            qtile.groups_map[name].cmd_toscreen()
+            qtile.groups_map[name].toscreen()
     return _inner
 
 for i in groups:
@@ -235,6 +235,7 @@ decor_clock = {
             padding_y=10,
             padding_x=0,
             group=True,
+            extrawidth=5,
         )
     ],
 }
@@ -719,11 +720,11 @@ def spotify(window):
 @hook.subscribe.group_window_add
 def window_added(group, window):
     if window.floating:
-        window.to_front()
+        window.bring_to_front()
     else:
         for win in reversed(group.focus_history):
             if win.floating:
-                win.to_front()
+                win.bring_to_front()
                 return
 # Autostart
 @hook.subscribe.startup_once
