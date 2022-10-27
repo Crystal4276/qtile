@@ -14,7 +14,7 @@ from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration
 def txt_remove(text):
     return ""
 
-# Send a window within a group to group displayed in left or right screens. Three monitors configuration, monitor 0 is the central monitor -> Screens: [1,0,2] 
+# Send a window within a group to group displayed on left or right screen. Three monitors configuration, monitor 0 is the central monitor -> Screens: [1,0,2] 
 def window_to_previous_screen(qtile, switch_group=False, switch_screen=False):
     i = qtile.screens.index(qtile.current_screen)
     if i == 0:
@@ -58,8 +58,8 @@ def go_to_group(name: str) -> callable:
             qtile.groups_map[name].toscreen()
     return _inner
 
-# COLORS FOR THE BAR
-#Theme name : Catppuccin Mocha
+# Theme name : Catppuccin Mocha 
+# https://github.com/catppuccin/catppuccin#-palettes
 def init_colors():
     return [["#cdd6f4", "#cdd6f4"], # color 0 Blue Catppuccin Mocha
             ["#1e1e2e", "#1e1e2e"], # color 1 Base Catppuccin Mocha
@@ -155,36 +155,6 @@ for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name))))
     keys.append(Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name)))
 
-# Decoration setting for systray Rect.Decoraction
-decor_systray = {
-    "decorations": [
-        RectDecoration(
-            colour="#45475a",
-            line_width= 0,
-            radius=20,
-            filled=True,
-            padding_y=10,
-            padding_x=0,
-            extrawidth=10,
-            group=False,
-        )
-    ],
-}
-
-# Decoration setting for group Rect.Decoraction
-decor = {
-    "decorations": [
-        RectDecoration(
-            colour="#45475a",
-            line_width= 0,
-            radius=20,
-            filled=True,
-            padding_y=10,
-            padding_x=0,
-            group=True,
-        )
-    ],
-}
 # Decoration setting for group clock Rect.Decoraction
 decor_clock = {
     "decorations": [
@@ -377,14 +347,13 @@ screens = [
                        display_format = "  {updates}",
                        mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
                        no_update_string='',
-                       colour_have_updates = colors[3], **decor
+                       colour_have_updates = colors[3], **decor_nogroup
                 ),
                 widget.Spacer(length=10),
                 widget.Systray(
                        background=colors[4],
                        icon_size = 40,
                        padding = 10,
-                       #**decor_systray
                 ),
                 widget.Spacer(length=10),
                 widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
@@ -401,14 +370,15 @@ screens = [
                 widget.ScriptExit(
                        exit_script='poweroff',
                        font = "FontAwesome", 
-                       default_text=" ", 
+                       default_text="", 
                        fontsize=29, 
                        foreground="#181825", 
-                       padding=5,
-                       countdown_format= "{}  ",
+                       padding=0,
+                       countdown_format= "{} ",
                        **decor_clock, 
                 ),
-                widget.Spacer(length=15,), 
+                widget.Spacer(length=5,**decor_clock), 
+                widget.Spacer(length=3) 
            ],
         60, background=colors[4], margin = [3,3,0,3], opacity=1,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
@@ -475,13 +445,14 @@ screens = [
                 widget.ScriptExit(
                        exit_script='poweroff',
                        font = "FontAwesome", 
-                       default_text=" ", 
-                       fontsize=27, 
+                       default_text="", 
+                       fontsize=26, 
                        foreground="#181825", 
                        padding=5,
-                       countdown_format= "{}  ",
+                       countdown_format= "{} ",
                        **decor_clock, 
                 ),
+				widget.Spacer(length=5,**decor_clock), 
                 widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
@@ -548,14 +519,15 @@ screens = [
                 widget.ScriptExit(
                        exit_script='poweroff',
                        font = "FontAwesome", 
-                       default_text=" ", 
-                       fontsize=27, 
+                       default_text="", 
+                       fontsize=26, 
                        foreground="#181825", 
                        padding=5,
-                       countdown_format= "{}  ",
+                       countdown_format= "{} ",
                        **decor_clock, 
                 ),
-                widget.Spacer(length=3),
+				widget.Spacer(length=5,**decor_clock), 
+                widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
@@ -686,5 +658,3 @@ def assign_groups_to_screens():
 			qtile.groups_map["8"].toscreen(2)
 		except IndexError:
 			pass
-
-
