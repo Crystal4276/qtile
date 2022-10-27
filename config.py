@@ -149,8 +149,11 @@ groups = [
     Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
 ]
 #### Key binding for group stick to screen
-def go_to_group(name: str):
+def go_to_group(name: str) -> callable:
     def _inner(qtile) -> None:
+        if len(qtile.screens) == 1:
+            qtile.groups_map[name].cmd_toscreen()
+            return
         if name in "123":
             qtile.focus_screen(0)
             qtile.groups_map[name].toscreen()
@@ -236,7 +239,7 @@ decor_clock = {
             padding_x=0,
             group=True,
             extrawidth=5,
-        )
+        ),
     ],
 }
 # Decoration setting for group cpu Rect.Decoraction
@@ -249,11 +252,11 @@ decor_cpu = {
             radius=[15, 0, 0, 15],
             filled=True,
             padding_y=10,
-            padding_x=0,
+            padding_x=4,
             group=True,
             clip=False,
         ),
-        PowerLineDecoration(path="rounded_right",size=15,shift=0,padding_y=9),
+        PowerLineDecoration(path="forward_slash",size=10,shift=0,padding_y=9),
     ],
 }
 
@@ -271,14 +274,15 @@ decor_gpu = {
             group=True,
             clip=False,
         ),
-			PowerLineDecoration(path="rounded_right",size=15,shift=0,padding_y=9),
+			PowerLineDecoration(path="forward_slash",size=10,shift=0,padding_y=9),
     ],
 }
 # Decoration setting for group mem Rect.Decoraction
 decor_mem = {
     "decorations": [
         RectDecoration(
-            colour="#a6e3a1",
+            #colour="#a6e3a1",
+            use_widget_background=True,
             line_width= 0,
             radius=[0, 15, 15, 0],
             filled=True,
@@ -290,23 +294,7 @@ decor_mem = {
         )
     ],
 }
-# Decoration setting for group mem Rect.Decoraction
-decor_spacer = {
-    "decorations": [
-        RectDecoration(
-            use_widget_background=True,
-            #colour="#45475a",
-            line_width= 0,
-            radius=[0, 0, 0, 0],
-            filled=True,
-            margin_y=20,
-            padding_y=10,
-            padding_x=0,
-            group=True,
-            clip=False,
-        )
-    ],
-}
+
 # Decoration setting for no grouping Rect.Decoraction
 decor_nogroup = {
     "decorations": [
@@ -336,7 +324,6 @@ decor_side = {
         )
     ],
 }
-
 
 # Layout configuration
 layout_theme = {"border_width": 1,
@@ -464,10 +451,9 @@ screens = [
                        #**decor_systray
                 ),
                 widget.Spacer(length=10),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
-                widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
                 widget.Spacer(length=10),   
                 widget.Clock( 
                        padding = 10,
@@ -539,15 +525,14 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
-                widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
                 widget.Spacer(length=10),   
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[9],
-                       fontsize = 25,
+                       fontsize = 22,
                        format="%H:%M",
                        **decor_clock, 
                 ),
@@ -555,7 +540,7 @@ screens = [
                        exit_script='poweroff',
                        font = "FontAwesome", 
                        default_text=" ", 
-                       fontsize=29, 
+                       fontsize=27, 
                        foreground="#181825", 
                        padding=5,
                        countdown_format= "{}  ",
@@ -613,15 +598,14 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=26, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=26, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
-                widget.Spacer(length=1,background='#a6e3a1',**decor_spacer), 
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=26, foreground=colors[9],update_interval=5, **decor_mem),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
                 widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[9],
-                       fontsize = 25,
+                       fontsize = 22,
                        format="%H:%M",
                        **decor_clock, 
                 ),
@@ -629,7 +613,7 @@ screens = [
                        exit_script='poweroff',
                        font = "FontAwesome", 
                        default_text=" ", 
-                       fontsize=29, 
+                       fontsize=27, 
                        foreground="#181825", 
                        padding=5,
                        countdown_format= "{}  ",
@@ -732,3 +716,12 @@ def autostart():
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.Popen([home])
     
+# Activate group 6, 7, and 1 after startup
+@hook.subscribe.startup_complete
+def assign_groups_to_screens():
+    try:
+        qtile_global.groups_map["1"].cmd_toscreen(0)
+        qtile_global.groups_map["6"].cmd_toscreen(1)
+        qtile_global.groups_map["7"].cmd_toscreen(2)
+    except IndexError:
+        pass
