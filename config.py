@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 from libqtile import bar, layout, hook, qtile
 from libqtile.log_utils import logger
@@ -102,6 +103,8 @@ keys = [
     Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod], "s", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
+    	
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -160,13 +163,14 @@ decor_clock = {
     "decorations": [
         RectDecoration(
             colour="#94e2d5",
+            #use_widget_background=True,
             line_width= 0,
             radius=[15, 15, 15, 15],
             filled=True,
             padding_y=10,
             padding_x=0,
             group=True,
-            extrawidth=5,
+            extrawidth=0,
         ),
     ],
 }
@@ -228,6 +232,7 @@ decor_nogroup = {
     "decorations": [
         RectDecoration(
             colour="#45475a",
+            #use_widget_background=True,
             line_width= 0,
             radius=[15, 15, 15, 15],
             filled=True,
@@ -238,6 +243,22 @@ decor_nogroup = {
     ],
 }
 
+# Decoration setting for no grouping Rect.Decoraction
+decor_exit = {
+    "decorations": [
+        RectDecoration(
+            #colour="#45475a",
+            use_widget_background=True,
+            line_width= 0,
+            radius=[15, 15, 15, 15],
+            filled=True,
+            padding_y=10,
+            padding_x=0,
+            group=True,
+            extrawidth=5,
+        )
+    ],
+}
 # Decoration setting for no grouping side screen Rect.Decoraction
 decor_side = {
     "decorations": [
@@ -295,6 +316,7 @@ screens = [
                        margin_y = 3,
                        margin_x = 15,
                        padding = 5,
+                       #background="#45475a",
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
@@ -359,25 +381,28 @@ screens = [
                 widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
-                widget.Spacer(length=10),   
+                widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[9],
+                       #background="#94e2d5",
                        fontsize = 24,
-                       format="%A %d, %H:%M",
+                       format=" %A, %d  %H:%M",
                        **decor_clock, 
                 ),
+                widget.Spacer(length=10),
                 widget.ScriptExit(
                        exit_script='poweroff',
                        font = "FontAwesome", 
-                       default_text="", 
-                       fontsize=29, 
-                       foreground="#181825", 
-                       padding=0,
-                       countdown_format= "{} ",
-                       **decor_clock, 
+                       default_text="  ", 
+                       fontsize=27, 
+                       foreground="#181825",
+                       background="#eba0ac", 
+                       padding=5,
+                       countdown_format= "  {}",
+                       **decor_exit, 
                 ),
-                widget.Spacer(length=5,**decor_clock), 
+                widget.Spacer(length=5,background="#eba0ac", **decor_exit), 
                 widget.Spacer(length=3) 
            ],
         60, background=colors[4], margin = [3,3,0,3], opacity=1,
@@ -386,8 +411,8 @@ screens = [
         ), 
                        wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
 					   wallpaper_mode="fill",
-					   
 	),
+
     Screen(
         top=bar.Bar(
             [
@@ -439,20 +464,10 @@ screens = [
                        padding = 10,
                        foreground = colors[9],
                        fontsize = 22,
-                       format="%H:%M",
+                       format=" %H:%M",
                        **decor_clock, 
                 ),
-                widget.ScriptExit(
-                       exit_script='poweroff',
-                       font = "FontAwesome", 
-                       default_text="", 
-                       fontsize=26, 
-                       foreground="#181825", 
-                       padding=5,
-                       countdown_format= "{} ",
-                       **decor_clock, 
-                ),
-				widget.Spacer(length=5,**decor_clock), 
+				widget.Spacer(length=10,**decor_clock), 
                 widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
@@ -462,6 +477,7 @@ screens = [
 					   wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
 					   wallpaper_mode="fill",
         ),
+        
     Screen(
         top=bar.Bar(
             [
@@ -513,20 +529,10 @@ screens = [
                        padding = 10,
                        foreground = colors[9],
                        fontsize = 22,
-                       format="%H:%M",
+                       format=" %H:%M",
                        **decor_clock, 
                 ),
-                widget.ScriptExit(
-                       exit_script='poweroff',
-                       font = "FontAwesome", 
-                       default_text="", 
-                       fontsize=26, 
-                       foreground="#181825", 
-                       padding=5,
-                       countdown_format= "{} ",
-                       **decor_clock, 
-                ),
-				widget.Spacer(length=5,**decor_clock), 
+				widget.Spacer(length=10,**decor_clock), 
                 widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
@@ -587,12 +593,12 @@ floating_layout = layout.Floating(
         Match(wm_class="cinnamon-settings screensaver"),  # screensaver
         Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
         Match(wm_class="virt-manager"), # Virtual Manager
-                Match(title="branchdialog"),  # gitk
+        Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
-      #  Match(title="Steam - News"),  # Steam news pop-up windows
         Match(wm_class="nm-connection-editor") # network-manager connection editor
-    ], fullscreen_border_width = 0, border_width = 2, border_focus=colors[2], border_normal=colors[6]
+		], 
+    fullscreen_border_width = 0, border_width = 2, border_focus=colors[2], border_normal=colors[6]
 )
 
 auto_fullscreen = True
