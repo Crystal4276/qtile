@@ -103,7 +103,7 @@ keys = [
     Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
-    Key([mod], "s", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
+    Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
     	
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
@@ -129,6 +129,7 @@ keys = [
     Key([mod],"w", lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher"), desc="Launch Rofi"),
     Key([mod],"x", lazy.spawn("geany"), desc="Launch Geany editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
+    Key([mod],"s", lazy.spawn("archlinux-logout"), desc="archlinux-logout"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch Terminal"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
@@ -255,7 +256,7 @@ decor_exit = {
             padding_y=10,
             padding_x=0,
             group=True,
-            extrawidth=5,
+            extrawidth=2,
         )
     ],
 }
@@ -387,22 +388,22 @@ screens = [
                        foreground = colors[9],
                        #background="#94e2d5",
                        fontsize = 24,
-                       format=" %A, %d  %H:%M",
+                       format=" %A %d  %H:%M",
                        **decor_clock, 
                 ),
                 widget.Spacer(length=10),
-                widget.ScriptExit(
-                       exit_script='poweroff',
+                widget.TextBox(
+                       mouse_callbacks={"Button1": lazy.spawn("archlinux-logout")},
+                       #exit_script='archlinux-logout',
                        font = "FontAwesome", 
-                       default_text="  ", 
+                       text="", 
                        fontsize=27, 
                        foreground="#181825",
                        background="#eba0ac", 
-                       padding=5,
-                       countdown_format= "  {}",
+                       padding=10,
                        **decor_exit, 
                 ),
-                widget.Spacer(length=5,background="#eba0ac", **decor_exit), 
+                #widget.Spacer(length=5,background="#eba0ac", **decor_exit), 
                 widget.Spacer(length=3) 
            ],
         60, background=colors[4], margin = [3,3,0,3], opacity=1,
@@ -593,6 +594,7 @@ floating_layout = layout.Floating(
         Match(wm_class="cinnamon-settings screensaver"),  # screensaver
         Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
         Match(wm_class="virt-manager"), # Virtual Manager
+        Match(wm_class="archlinux-logout.py"), # Virtual Manager
         Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
