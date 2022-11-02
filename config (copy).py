@@ -1,41 +1,78 @@
-# Copyright (c) 2010 Aldo Cortesi
-# Copyright (c) 2010, 2014 dequis
-# Copyright (c) 2012 Randall Ma
-# Copyright (c) 2012-2014 Tycho Andersen
-# Copyright (c) 2012 Craig Barnes
-# Copyright (c) 2013 horsik
-# Copyright (c) 2013 Tao Sauvage
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 import os
 import subprocess
+import time
 
-from libqtile import bar, layout, hook
-from qtile_extras import widget
-from qtile_extras.widget.decorations import RectDecoration
-from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule
+from libqtile import bar, layout, hook, qtile
+from libqtile.log_utils import logger
+from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule, DropDown
 from libqtile.lazy import lazy
 from libqtile.widget import Spacer
 
-def txt_remove(text): 
+from qtile_extras import widget
+from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration
+
+# Parsing : remove all text.
+def txt_remove(text):
     return ""
+
+# Send a window within a group to group displayed on left or right screen. Three monitors configuration, monitor 0 is the central monitor -> Screens: [1,0,2] 
+def window_to_previous_screen(qtile, switch_group=False, switch_screen=False):
+    i = qtile.screens.index(qtile.current_screen)
+    if i == 0:
+        group = qtile.screens[i + 1].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i + 1)
+    if i == 2:
+        group = qtile.screens[i - 2].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i - 2)
+
+def window_to_next_screen(qtile, switch_group=False, switch_screen=False):
+    i = qtile.screens.index(qtile.current_screen)
+    if i == 0:
+        group = qtile.screens[i + 2].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i + 2)
+    if i == 1:
+        group = qtile.screens[i - 1].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i - 1)
+
+# Key bindings for group stick to screen
+def go_to_group(name: str) -> callable:
+    def _inner(qtile) -> None:
+        if len(qtile.screens) == 1:
+            qtile.groups_map[name].toscreen()
+            return
+        if name in "123":
+            qtile.focus_screen(0)
+            qtile.groups_map[name].toscreen()
+        elif name in "456":
+            qtile.focus_screen(1)
+            qtile.groups_map[name].toscreen()
+        else:
+            qtile.focus_screen(2)
+            qtile.groups_map[name].toscreen()
+    return _inner
+
+# Theme name : Catppuccin Mocha 
+# https://github.com/catppuccin/catppuccin#-palettes
+def init_colors():
+    return [["#cdd6f4", "#cdd6f4"], # color 0 Blue Catppuccin Mocha
+            ["#1e1e2e", "#1e1e2e"], # color 1 Base Catppuccin Mocha
+            ["#9399b2", "#9399b2"], # color 2 Overlay 2 Catppuccin Mocha
+            ["#f5c2e7", "#f5c2e7"], # color 3 Pink Catppuccin Mocha
+            ["00000000", "00000000"], # color 4 Transparent
+            ["#f3f4f5", "#f3f4f5"], # color 5 White
+            ["#45475a", "#45475a"], # color 6 Surface0 Catppuccin Mocha
+            ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base Catppuccin Mocha 66% transparency
+            ["#f3f4f500", "#f3f4f500"], # color 8 White 66 % Tranparency
+            ["#11111b", "#11111b"]] # color 9 Crust
+colors = init_colors()
 
 @lazy.function
 def minimize_all(qtile):
@@ -54,19 +91,20 @@ keys = [
     #Key([mod], "Down", lazy.layout.down(), desc="Move focus down"),
     #Key([mod], "Up", lazy.layout.up(), desc="Move focus up"),
     #Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    
     # Move windows between left/right columns or move up/down in current stack.
-    # Moving out of range in Columns layout will create new column.
-    #Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
-    #Key([mod, "control"], "Right", lazy.layout.shuffle_right(), desc="Move window to the right"),
-    #Key([mod, "control"], "Down", lazy.layout.shuffle_down(), desc="Move window down"),
-    #Key([mod, "control"], "Up", lazy.layout.shuffle_up(), desc="Move window up"),
-    # Grow windows. If current window is on the edge of screen and direction
-    # will be to screen edge - window would shrink.
-    #Key([mod, "shift"], "Left", lazy.layout.grow_left(), desc="Grow window to the left"),
-    #Key([mod, "shift"], "Right", lazy.layout.grow_right(), desc="Grow window to the right"),
-    #Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
-    #Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
-    #Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
+    Key([mod, "control"], "Right", lazy.layout.shuffle_right(), desc="Move window to the right"),
+    Key([mod, "control"], "Down", lazy.layout.shuffle_down(), desc="Move window down"),
+    Key([mod, "control"], "Up", lazy.layout.shuffle_up(), desc="Move window up"),
+    # Grow windows.
+    Key([mod, "shift"], "Left", lazy.layout.grow_left(), desc="Grow window to the left"),
+    Key([mod, "shift"], "Right", lazy.layout.grow_right(), desc="Grow window to the right"),
+    Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
+    Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
+    Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
+    Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
+    	
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -77,50 +115,33 @@ keys = [
     #    lazy.layout.toggle_split(),
     #    desc="Toggle between split and unsplit sides of stack",
     #),
+    # Move window to next screen
+    Key([mod], "Right", lazy.function(window_to_next_screen, switch_screen=True),desc="Move window to right screen"),
+    Key([mod], "Left", lazy.function(window_to_previous_screen, switch_screen=True), desc="Move window to left screen"),
 
-#Toggle minimization/fullscreen of appararent window
+#Toggle minimization/fullscreen/kill of windows
     Key([mod],"c", minimize_all(), desc="Toggle minimization of all window"),
     Key([mod],"f", lazy.window.toggle_fullscreen(), desc="Make window fullscreen"),
+    Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
 
  # Launch Applications
-    Key([mod],"e", lazy.spawn("nemo"), desc="Launch nemo"),
-    Key([mod],"w", lazy.spawn("/home/crystal/.config/rofi/bin/launcher"), desc="Launch rofi"),
-    Key([mod],"x", lazy.spawn("xed"), desc="Launch xed editor"),
+    Key([mod],"e", lazy.spawn("nemo"), desc="Launch Nemo"),
+    Key([mod],"w", lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher"), desc="Launch Rofi"),
+    Key([mod],"x", lazy.spawn("geany"), desc="Launch Geany editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
-    Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch terminal"),
+    Key([mod],"s", lazy.spawn("archlinux-logout"), desc="archlinux-logout"),
+    Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch Terminal"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
 
  # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
-    Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
 
  # Qtile commands
-    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
+    Key([mod, "mod1"], "r", lazy.restart(), desc="Restart Qtile"),
+    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
 ]
- 
-# Send a window within a group to group displayed in left or right screens
-def window_to_previous_screen(qtile, switch_group=False, switch_screen=False):
-    i = qtile.screens.index(qtile.current_screen)
-    if i != 0:
-        group = qtile.screens[i - 1].group.name
-        qtile.current_window.togroup(group, switch_group=switch_group)
-        if switch_screen == True:
-            qtile.cmd_to_screen(i - 1)
-
-def window_to_next_screen(qtile, switch_group=False, switch_screen=False):
-    i = qtile.screens.index(qtile.current_screen)
-    if i + 1 != len(qtile.screens):
-        group = qtile.screens[i + 1].group.name
-        qtile.current_window.togroup(group, switch_group=switch_group)
-        if switch_screen == True:
-            qtile.cmd_to_screen(i + 1)
-
-keys.extend([
-    # MOVE WINDOW TO NEXT SCREEN
-    Key([mod], "Right", lazy.function(window_to_next_screen, switch_screen=True)),
-    Key([mod], "Left", lazy.function(window_to_previous_screen, switch_screen=True)),
-])
 
 groups = [
     Group("1", label=""),
@@ -129,71 +150,80 @@ groups = [
     Group("4", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
     Group("5", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
     Group("6", label=""),
-    Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "ratiotile"),
+    Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "columns"),
     Group("8", label="", matches=[Match(wm_class=["evolution","thunderbird"])],layout = "max"),
     Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
 ]
 
-
-
-#### Key binding for group stick to screen
-def go_to_group(name: str):  
-    def _inner(qtile) -> None:
-        if name in "123":
-            qtile.focus_screen(0)  
-            qtile.groups_map[name].cmd_toscreen()
-        elif name in "456":
-            qtile.focus_screen(1)  
-            qtile.groups_map[name].cmd_toscreen()
-        else:
-            qtile.focus_screen(2)
-            qtile.groups_map[name].cmd_toscreen()
-    return _inner
-
 for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name))))
+    keys.append(Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name)))
 
-
-for i in groups:
-    keys.extend(
-        [
-            # mod1 + letter of group = switch to group
-#            Key([mod], i.name, lazy.group[i.name].toscreen(), desc="Switch to group {}".format(i.name),),
-
-            # mod1 + control + letter of group = switch to & move focused window to group
-            Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), desc="Switch to & move focused window to group {}".format(i.name),),
-
-            # Or, use below if you prefer not to switch to that group. mod1 + shift + letter of group = move focused window to group
-           #Key([mod, "shift"], i.name, lazy.window.togroup(i.name), desc="move focused window to group {}".format(i.name)),
-       ]
-    )
-
-# COLORS FOR THE BAR
-#Theme name : Catppuccin Mocha
-def init_colors():
-    return [["#cdd6f4", "#cdd6f4"], # color 0 Blue Catppuccin Mocha
-            ["#1e1e2e", "#1e1e2e"], # color 1 Base Catppuccin Mocha
-            ["#9399b2", "#9399b2"], # color 2 Overlay 2 Catppuccin Mocha
-            ["#f5c2e7", "#f5c2e7"], # color 3 Pink Catppuccin Mocha
-            ["00000000", "00000000"], # color 4 Transparent
-            ["#f3f4f5", "#f3f4f5"], # color 5 White
-            ["#45475a", "#45475a"], # color 6 Surface0 Catppuccin Mocha
-            ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base Catppuccin Mocha 66% transparency
-            ["#f3f4f515", "#f3f4f515"], # color 8 White 66 % Tranparency
-            ["#45475a", "00000000"]] # color 9
-colors = init_colors()
-
-# Decoration setting for group Rect.Decoraction
-decor = {
+# Decoration setting for group clock Rect.Decoraction
+decor_clock = {
     "decorations": [
         RectDecoration(
-            colour=colors[1],
+            colour="#94e2d5",
+            #use_widget_background=True,
             line_width= 0,
-            radius=20,
+            radius=[15, 15, 15, 15],
             filled=True,
-            padding_y=5,
+            padding_y=10,
             padding_x=0,
             group=True,
+            extrawidth=0,
+        ),
+    ],
+}
+# Decoration setting for group cpu Rect.Decoraction
+decor_cpu = {
+    "decorations": [
+        RectDecoration(
+            use_widget_background=True,
+            #colour="#fab387",
+            line_width= 0,
+            radius=[15, 0, 0, 15],
+            filled=True,
+            padding_y=10,
+            padding_x=4,
+            group=True,
+            clip=False,
+        ),
+        PowerLineDecoration(path="arrow_left",size=10,shift=0,padding_y=9),
+    ],
+}
+
+# Decoration setting for group gpu Rect.Decoraction
+decor_gpu = {
+    "decorations": [
+            RectDecoration(
+            use_widget_background=True,
+            #colour="#f9e2af",
+			line_width= 0,
+            radius=[0, 0, 0, 0],
+            filled=True,
+            padding_y=10,
+            padding_x=0,
+            group=True,
+            clip=False,
+        ),
+			PowerLineDecoration(path="arrow_right",size=10,shift=0,padding_y=9),
+    ],
+}
+# Decoration setting for group mem Rect.Decoraction
+decor_mem = {
+    "decorations": [
+        RectDecoration(
+            #colour="#a6e3a1",
+            use_widget_background=True,
+            line_width= 0,
+            radius=[0, 15, 15, 0],
+            filled=True,
+            margin_y=20,
+            padding_y=10,
+            padding_x=0,
+            group=True,
+            clip=False,
         )
     ],
 }
@@ -202,11 +232,28 @@ decor = {
 decor_nogroup = {
     "decorations": [
         RectDecoration(
-            colour=colors[8],
-            line_width= 2,
-            radius=20,
+            colour="#45475a",
+            #use_widget_background=True,
+            line_width= 0,
+            radius=[15, 15, 15, 15],
             filled=True,
-            padding_y=5,
+            padding_y=10,
+            padding_x=0,
+            group=False,
+        )
+    ],
+}
+
+# Decoration setting for update Rect.Decoraction
+decor_update = {
+    "decorations": [
+        RectDecoration(
+            colour="#f5c2e7",
+            #use_widget_background=True,
+            line_width= 0,
+            radius=[15, 15, 15, 15],
+            filled=True,
+            padding_y=10,
             padding_x=0,
             group=False,
         )
@@ -214,27 +261,36 @@ decor_nogroup = {
 }
 
 
-# Layout configuration
-layout_theme = {"border_width": 1,
-                "margin": 4,
-                "border_focus": colors[2],
-                "border_normal": colors[6]
-                }
-layouts = [
-    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2),
-    layout.Matrix(**layout_theme),
-    layout.RatioTile(**layout_theme),
-    layout.Max(**layout_theme),
-    # Try more layouts by unleashing below layouts.
-    # layout.Stack(num_stacks=2),
-    # layout.Bsp(),
-    # layout.MonadTall(),
-    # layout.MonadWide(**layout_theme),
-    # layout.Tile(),
-    # layout.TreeTab(),
-    # layout.VerticalTile(),
-    # layout.Zoomy(),
-]
+# Decoration setting for no grouping Rect.Decoraction
+decor_exit = {
+    "decorations": [
+        RectDecoration(
+            #colour="#45475a",
+            use_widget_background=True,
+            line_width= 0,
+            radius=[15, 15, 15, 15],
+            filled=True,
+            padding_y=10,
+            padding_x=0,
+            group=True,
+            extrawidth=2,
+        )
+    ],
+}
+# Decoration setting for no grouping side screen Rect.Decoraction
+decor_side = {
+    "decorations": [
+        RectDecoration(
+            colour="#45475a",
+            line_width=0,
+            radius=[15, 15, 15, 15],
+            filled=True,
+            padding_y=7,
+            padding_x=0,
+            group=False,
+        )
+    ],
+}
 
 widget_defaults = dict(
     font="monospace",
@@ -249,13 +305,27 @@ screens = [
             [
                 widget.Spacer(length=15),   
                 widget.Image(
-                       filename="/home/crystal/Pictures/Icons/arch-catppuccin.png",
+                       filename="~/.config/qtile/images/arch-catppuccin.png",
                        background = colors[4],
                        margin_y = 3, 
                        margin_x= 0,
-                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/rofi/bin/launcher")},
+                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher")},
                        #**decor_nogroup
                 ),  
+                widget.Spacer(length=5), 
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
+           #     widget.LaunchBar(progs=[
+           #             ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
+           #             ('nemo', 'nemo', 'Launch File Manager'),
+           #             ('chromium', 'chromium', 'Launch Chromium'),
+                        #('discord', 'discord', 'Launch Discord'),
+                        #('spotify', 'spotify', 'Launch Spotify'),
+                        #('deluge', 'deluge', 'Launch deluge'),
+                        #('thunderbird', 'thunderbird', 'Launch thunderbird'),
+                        #('steam', 'steam', 'Launch Steam'),
+           #                           ], 
+           #             padding = 15, padding_y = -2, icon_size=40,**decor_nogroup
+           #     ),
                 widget.Spacer(length=8),   
                 widget.GroupBox(
                        font="monospace",
@@ -264,6 +334,7 @@ screens = [
                        margin_y = 3,
                        margin_x = 15,
                        padding = 5,
+                       #background="#45475a",
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
@@ -273,33 +344,32 @@ screens = [
                        this_screen_border=colors[3],
                        urgent_border=colors[3],
                        urgent_text=colors[3],
-                       borderwidth = 4,
+                       borderwidth = 3,
                        visible_groups=['1', '2', '3'],
                        **decor_nogroup
                 ),
-                widget.Spacer(length=10),                 
-                widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
+                widget.Spacer(length=5),                 
                 widget.Prompt(),
                 widget.Chord(
                       chords_colors={
                       "launch": ("#ff0000", "#ffffff"),
                        },
                        name_transform=lambda name: name.upper(),
-                ),
-                widget.TaskList(
+                ),  
+                widget.Spacer(length=5),     
+				widget.TaskList(
                        highlight_method="block",
-                       border=colors[8],
+                       border=colors[4],
                        borderwidth=0,
                        background = colors[4],
                        icon_size = 40,
-                       fontsize=25,
-                       rounded = True,
                        padding_x = 1,
                        padding_y = 9,
                        margin_x= 5,
                        margin_y= 4,
                        spacing = 5,
                        parse_text=txt_remove,
+                       fontsize = 20,
                        txt_floating="🗗",
                        txt_maximized="🗖",
                        txt_minimized="🗕",
@@ -307,73 +377,73 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(),
-              
+                widget.WindowName(fontsize=24, empty_group_string="",foreground=colors[0]),
                 widget.Spacer(),
-                widget.LaunchBar(progs=[
-                        ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
-                        ('nemo', 'nemo', 'Launch File Manager'),
-                        ('chromium', 'chromium', 'Launch Chromium'),
-                        #('discord', 'discord', 'Launch Discord'),
-                        #('spotify', 'spotify', 'Launch Spotify'),
-                        #('deluge', 'deluge', 'Launch deluge'),
-                        #('thunderbird', 'thunderbird', 'Launch thunderbird'),
-                        #('steam', 'steam', 'Launch Steam'),
-                                      ], 
-                        padding = 15, padding_y = -2, icon_size=45,**decor_nogroup
-                ),
                 widget.CheckUpdates(
                        font = "FontAwesome",
-                       fontsize = 35,
-                       custom_command = "checkupdates", 
-                       update_interval = 60,
+                       fontsize = 30,
+                       custom_command = "checkupdates",
+                       update_interval = 86400,
                        display_format = "  {updates}",
-                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},         
-                       no_update_string='',                      
-                       colour_have_updates = colors[3],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
+                       no_update_string='',
+                       colour_have_updates = colors[9], 
+                       **decor_update
                 ),
-                widget.Spacer(length=10), 
+                widget.Spacer(length=10),
                 widget.Systray(
                        background=colors[4],
-                       icon_size = 50,
+                       icon_size = 40,
                        padding = 10,
-                      # **decor_nogroup
                 ),
-                widget.Spacer(length=20),   
+                widget.Spacer(length=10),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
+                widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
-                       foreground = colors[0],
-                       fontsize = 30,
-                       format="%H:%M",
-                       **decor, 
+                       foreground = colors[9],
+                       #background="#94e2d5",
+                       fontsize = 24,
+                       format=" %a-%d  %H:%M",
+                       **decor_clock, 
                 ),
-                widget.ScriptExit(
-                       exit_script='poweroff',
+                widget.Spacer(length=10),
+                widget.TextBox(
+                       mouse_callbacks={"Button1": lazy.spawn("archlinux-logout")},
+                       #exit_script='archlinux-logout',
                        font = "FontAwesome", 
-                       default_text="", 
-                       fontsize=35, 
-                       foreground=colors[0], 
-                       margin_x = 0, 
+                       text="", 
+                       fontsize=27, 
+                       foreground="#181825",
+                       background="#eba0ac", 
                        padding=10,
-                       countdown_format= "{}",
-                       **decor, 
+                       **decor_exit, 
                 ),
-                widget.Spacer(length=15), 
+                #widget.Spacer(length=5,background="#eba0ac", **decor_exit), 
+                widget.Spacer(length=3) 
            ],
-        55, background=colors[4], margin = [3,3,0,3],
+        60, background=colors[4], margin = [3,3,0,3], opacity=1,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
-        ),
-    ),
+        ), 
+                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+					   wallpaper_mode="fill",
+	),
+
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(-8), 
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 35,
-                       margin_x = 15,
+                       margin_x = 10,
                        spacing = 0,
                        margin_y = 2,
-                       padding = 6,
+                       padding = 5,
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
@@ -382,9 +452,8 @@ screens = [
                        highlight_method='border',
                        borderwidth = 3,
                        visible_groups=['4', '5', '6'],
-                       **decor_nogroup
+                       **decor_side
                 ),
-                widget.CurrentLayoutIcon(scale = 0.60, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
                        highlight_method="block",
                        border=colors[8],
@@ -406,28 +475,39 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
+                widget.Spacer(length=10),   
                 widget.Clock( 
                        padding = 10,
-                       foreground = colors[0],
-                       fontsize = 30,
-                       format="%H:%M",
-                       **decor
-                ), 
-                widget.Spacer(length=5), 
+                       foreground = colors[9],
+                       fontsize = 22,
+                       format=" %H:%M",
+                       **decor_clock, 
+                ),
+				widget.Spacer(length=10,**decor_clock), 
+                widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
-        ),),
+        ),                       
+					   wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+					   wallpaper_mode="fill",
+        ),
+        
     Screen(
         top=bar.Bar(
             [
+                widget.Spacer(-8), 
+                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 36,
-                       margin_x = 15,
+                       margin_x = 10,
                        spacing = 0,
-                       margin_y = 2,
+                       margin_y = 4,
                        padding = 6,
                        disable_drag = True,
                        active = colors[3],
@@ -437,9 +517,8 @@ screens = [
                        highlight_method='border',
                        borderwidth = 3,
                        visible_groups=['7', '8', '9'],
-                       **decor_nogroup
+                       **decor_side
                 ),
-                widget.CurrentLayoutIcon(scale = 0.6, use_mask = False, foreground="#f5c2e7"),
                 widget.TaskList(
                        highlight_method="block",
                        border=colors[8],
@@ -461,20 +540,49 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[9],background="#fab387",update_interval=5, **decor_cpu),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[9], background='#f9e2af',update_interval=5, **decor_gpu),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[9], background='#a6e3a1', update_interval=5, **decor_mem),
+                widget.Spacer(length=10),
                 widget.Clock( 
-                       padding_y = -5,
-                       foreground = colors[0],
-                       fontsize = 30,
-                       format="%H:%M",
-                       **decor
-                ), 
-                widget.Spacer(length=5), 
+                       padding = 10,
+                       foreground = colors[9],
+                       fontsize = 22,
+                       format=" %H:%M",
+                       **decor_clock, 
+                ),
+				widget.Spacer(length=10,**decor_clock), 
+                widget.Spacer(length=3,), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
+                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+					   wallpaper_mode="fill",
     ),   
+]
+
+# Layout configuration
+layout_theme = {"border_width": 1,
+                "margin": 4,
+                "border_focus": colors[2],
+                "border_normal": colors[6]
+                }
+layouts = [
+    layout.Columns(**layout_theme),
+    # layout.Matrix(**layout_theme),
+    #layout.RatioTile(**layout_theme),
+    layout.Max(**layout_theme),
+    # Try more layouts by unleashing below layouts.
+    # layout.Stack(num_stacks=2),
+    # layout.Bsp(),
+    # layout.MonadTall(),
+    # layout.MonadWide(**layout_theme),
+    # layout.Tile(),
+    # layout.TreeTab(),
+    # layout.VerticalTile(),
+    # layout.Zoomy(),
 ]
 
 # Drag floating layouts.
@@ -498,24 +606,20 @@ floating_layout = layout.Floating(
         Match(wm_class="makebranch"),  # gitk
         Match(wm_class="maketag"),  # gitk
         Match(wm_class="ssh-askpass"),  # ssh-askpass
+        Match(wm_class="gnome-disks"),  # gnome disk utility
         Match(wm_class="blueberry.py"),  # blueberry-tray
         Match(wm_class="conky"),  # conky
-        Match(wm_class="cinnamon-settings screensaver"),  # conky
+        Match(wm_class="cinnamon-settings screensaver"),  # screensaver
+        Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
+        Match(wm_class="virt-manager"), # Virtual Manager
+        #Match(title="ArchLinux Logout"), # Logout screen
         Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
-      #  Match(title="Steam - News"),  # Steam news pop-up windows
         Match(wm_class="nm-connection-editor") # network-manager connection editor
-    ], fullscreen_border_width = 0, border_width = 2, border_focus=colors[2], border_normal=colors[6]
+		], 
+    fullscreen_border_width = 0, border_width = 2, border_focus=colors[2], border_normal=colors[6]
 )
-
-#layout_conky = layout.Floating(
-#    float_rules=[
-        # Run the utility of `xprop` to see the wm class and name of an X client.
-#        *layout.Floating.default_float_rules,
-#        Match(wm_class="conky"),  # conky
-#    ], border_focus=colors[4], border_normal=colors[4]
-#)
 
 auto_fullscreen = True
 focus_on_window_activation = "smart" #or focus
@@ -528,31 +632,24 @@ auto_minimize = True
 # When using the Wayland backend, this can be used to configure input devices.
 wl_input_rules = None
 
-# XXX: Gasp! We're lying here. In fact, nobody really uses or cares about this
-# string besides java UI toolkits; you can see several discussions on the
-# mailing lists, GitHub issues, and other WM documentation that suggest setting
-# this string if your java app doesn't work correctly. We may as well just lie
-# and say that we're a working one by default.
-#
-# We choose LG3D to maximize irony: it is a 3D non-reparenting WM written in
-# java that happens to be on java's whitelist.
+# Window Manager Name 
 wmname = "Qtile"
 
 # If Spotify opens move it to proper group
 @hook.subscribe.client_name_updated
 def spotify(window):
     if window.name == "Spotify":
-        window.cmd_togroup(group_name="5")
+        window.togroup(group_name="5")
 
 # Keep floating window always above
 @hook.subscribe.group_window_add
 def window_added(group, window):
     if window.floating:
-        window.cmd_bring_to_front()
+        window.bring_to_front()
     else:
         for win in reversed(group.focus_history):
             if win.floating:
-                win.cmd_bring_to_front()
+                win.bring_to_front()
                 return
 # Autostart
 @hook.subscribe.startup_once
@@ -560,4 +657,30 @@ def autostart():
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.Popen([home])
 
+# Pass every Steam window that is not the main one in floating mode
+@hook.subscribe.client_new
+def float_steam(window):
+    wm_class = window.window.get_wm_class()
+    w_name = window.window.get_name()
+    if (
+        wm_class == ("Steam", "Steam")
+        and (
+            w_name != "Steam"
+            # w_name == "Friends List"
+            # or w_name == "Screenshot Uploader"
+            # or w_name.startswith("Steam - News")
+            or "PMaxSize" in window.window.get_wm_normal_hints().get("flags", ())
+        )
+    ):
+        window.floating = True
 
+# Activate group 6, 7, and 1 after startup
+@hook.subscribe.startup_complete
+def assign_groups_to_screens():
+	if len(qtile.screens) != 1:
+		try:
+			qtile.groups_map["1"].toscreen(0)
+			qtile.groups_map["6"].toscreen(1)
+			qtile.groups_map["8"].toscreen(2)
+		except IndexError:
+			pass

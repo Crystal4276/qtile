@@ -6,7 +6,7 @@
 #xrandr --output Virtual-1 --mode 3440x1440_100.00
 
 #starting utility applications at boot time
-nm-applet &
+nm-applet --indicator &
 #pamac-tray &
 #nitrogen --restore &
 picom --config $HOME/.config/qtile/scripts/picom.conf --experimental-backends &
@@ -14,12 +14,14 @@ picom --config $HOME/.config/qtile/scripts/picom.conf --experimental-backends &
 blueberry-tray &
 # /home/crystal/.conky/conky-startup.sh
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+#nvidia-settings --load-config-only &
+
 #run variety &
 
 #starting user applications at boot time
-volumeicon &
+#volumeicon &
 thunderbird &
-nohup deluge &
+deluge &
 discord &
 spotify &
 steam &
