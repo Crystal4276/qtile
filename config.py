@@ -247,7 +247,7 @@ decor_exit = {
             padding_x=0,
             group=True,
             clip=True,
-            #extrawidth=2,
+            #extrawidth=-10,
         )
     ],
 }
@@ -365,27 +365,9 @@ screens = [
                        #background = colors[1],
                        #**decor_update
                 ),
-                #widget.Spacer(length=10),
-                #widget.PulseVolume(),
-                #widget.StatusNotifier(
-				#	   icon_size=30,
-				#	   icon_theme="/usr/share/icons/Papirus-Dark",
-				#	   padding = 15, 
-				#	   **decor_nogroup,
-				#	   ),
-                #widget.Systray(
-                #       background=colors[4],
-                #       icon_size = 40,
-                #       padding = 10,
-                #),
-                #widget.ALSAWidget(),
-                #widget.Volume(),
-                #widget.PulseVolume(),
                 widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[13],background=colors[1],update_interval=5, **decor_mem),
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[12], background=colors[1],update_interval=5, **decor_mem),
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
-                #widget.Volume(
-                #widget.PulseVolume(
                 widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
@@ -400,11 +382,11 @@ screens = [
 					   mouse_callbacks={"Button1": lazy.spawn("pavucontrol")},
 					   mode='both',
 					   theme_path="/usr/share/icons/Papirus-Dark",
-					   icon_size=30,
+					   icon_size=32,
 					   fontsize=20,
-					   padding_y=1,
-					   padding_x=10,
-					   bar_width=15,
+					   padding_y=0,
+					   padding_x=8,
+					   bar_width=60,
 					   bar_colour_high=colors[10],
 					   bar_colour_loud=colors[15],
 					   bar_colour_normal=colors[13],
@@ -415,8 +397,8 @@ screens = [
 					   **decor_exit,
                        ),
                 widget.StatusNotifier(
-					   icon_size=30,
-					   icon_theme="/usr/share/icons/Papirus-Dark",
+					   icon_size=32,
+					   icon_theme="/usr/share/icons/kora",
 					   padding = 10,
 					   hide_after=0.1,
 					   menu_width=385,
@@ -429,16 +411,12 @@ screens = [
                        menu_fontsize = 16,
 					   **decor_exit,
 				),
-				#widget.Sep(length=5,background=colors[1], **decor_exit), 	
 				widget.TextBox(
-                       #mouse_callbacks={"Button1": lazy.spawn("archlinux-logout")},
-                       #exit_script='archlinux-logout',
-                       #font = "FontAwesome", 
                        text="", 
                        fontsize=22, 
                        foreground=colors[15],
                        background=colors[1],
-                       padding=0,
+                       padding=-5,
                        **decor_exit, 
 				),   
                 widget.TextBox(
@@ -449,11 +427,16 @@ screens = [
                        fontsize=27, 
                        foreground=colors[5],
                        background=colors[1],
-                       padding=10,
+                       padding=12,
                        **decor_exit, 
                 ),
-                #widget.Spacer(length=5,background="#eba0ac", **decor_exit), 
-                widget.Spacer(length=3) 
+                #widget.Spacer(length=10,background=colors[1], **decor_exit), 
+                widget.Spacer(length=3), 
+             #   widget.Systray(
+             #          background=colors[4],
+             #          icon_size = 40,
+              #         padding = 10,
+             #   ),
            ],
         60, background=colors[4], margin = [3,3,0,3], opacity=1,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
