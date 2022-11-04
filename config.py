@@ -379,39 +379,39 @@ screens = [
                 ),
                 widget.Spacer(length=10),
                 widget.ALSAWidget(
-					   mouse_callbacks={"Button1": lazy.spawn("pavucontrol")},
-					   mode='both',
-					   theme_path="/usr/share/icons/Papirus-Dark",
-					   icon_size=32,
-					   fontsize=20,
-					   padding_y=0,
-					   padding_x=8,
-					   bar_width=60,
-					   bar_colour_high=colors[10],
-					   bar_colour_loud=colors[15],
-					   bar_colour_normal=colors[13],
-					   foreground=colors[5],
+                       mouse_callbacks={"Button1": lazy.spawn("pavucontrol")},
+                       mode='both',
+                       theme_path="/usr/share/icons/Papirus-Dark",
+                       icon_size=32,
+                       fontsize=20,
+                       padding_y=0,
+                       padding_x=8,
+                       bar_width=60,
+                       bar_colour_high=colors[10],
+                       bar_colour_loud=colors[15],
+                       bar_colour_normal=colors[13],
+                       foreground=colors[5],
                        background=colors[1],
                        update_interval=5,
                        hide_interval=2,
-					   **decor_exit,
+                       **decor_exit,
                        ),
                 widget.StatusNotifier(
-					   icon_size=32,
-					   icon_theme="/usr/share/icons/kora",
-					   padding = 10,
-					   hide_after=0.1,
-					   menu_width=385,
-					   show_menu_icons=True, 
+                       icon_size=32,
+                       icon_theme="/usr/share/icons/Papirus-Dark",
+                       padding = 8,
+                       hide_after=0.1,
+                       menu_width=385,
+                       show_menu_icons=True, 
                        background=colors[1],
                        highlight_colour=colors[6],
                        menu_background=colors[1],
-					   menu_foreground=colors[0],
-					   separator_colour=colors[15],
+                       menu_foreground=colors[0],
+                       separator_colour=colors[15],
                        menu_fontsize = 16,
-					   **decor_exit,
+                       **decor_exit,
 				),
-				widget.TextBox(
+                widget.TextBox(
                        text="", 
                        fontsize=22, 
                        foreground=colors[15],
@@ -443,7 +443,7 @@ screens = [
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ), 
                        wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
-					   wallpaper_mode="fill",
+                       wallpaper_mode="fill",
 	),
 
     Screen(
@@ -507,8 +507,8 @@ screens = [
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),                       
-					   wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
-					   wallpaper_mode="fill",
+                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+                       wallpaper_mode="fill",
         ),
         
     Screen(
@@ -573,7 +573,7 @@ screens = [
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
                        wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
-					   wallpaper_mode="fill",
+                       wallpaper_mode="fill",
     ),   
 ]
 
@@ -621,7 +621,7 @@ floating_layout = layout.Floating(
         Match(wm_class="maketag"),  # gitk
         Match(wm_class="ssh-askpass"),  # ssh-askpass
         Match(wm_class="gnome-disks"),  # gnome disk utility
-        Match(wm_class="blueberry.py"),  # blueberry-tray
+        Match(wm_class="blueman-manager"),  # blueman-applet
         Match(wm_class="conky"),  # conky
         Match(wm_class="cinnamon-settings screensaver"),  # screensaver
         Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources

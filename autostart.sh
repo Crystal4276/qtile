@@ -7,19 +7,18 @@
 
 #starting utility applications at boot time
 nm-applet --indicator &
-#pamac-tray &
-#nitrogen --restore &
 picom --config $HOME/.config/qtile/scripts/picom.conf --experimental-backends &
 #alttab -w 1 -d 2 -i 120x80 -t 120x80 -bg "#1e1d2d" -fg "#d9e0ee" -frame "#f5c2e7" -bw 5 -inact "#1e1d2d" -bc "#000000" -bw 0 -theme hicolor &
-blueberry-tray &
-# /home/crystal/.conky/conky-startup.sh
+blueman-applet &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
-#nvidia-settings --load-config-only &
-
 #run variety &
+#pamac-tray &
+#nitrogen --restore &
+#nvidia-settings --load-config-only &
+# /home/crystal/.conky/conky-startup.sh
+
 
 #starting user applications at boot time
-#volumeicon &
 thunderbird &
 deluge &
 discord &
