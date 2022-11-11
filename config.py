@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import asyncio
 
 from libqtile import bar, layout, hook, qtile
 from libqtile.log_utils import logger
@@ -10,6 +11,119 @@ from libqtile.widget import Spacer
 
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration
+
+from qtile_extras.popup.toolkit import (
+    PopupRelativeLayout,
+    PopupImage,
+    PopupText
+)
+
+def show_power_menu(qtile):
+
+    controls = [
+        PopupImage(
+            filename="~/.config/qtile/assets/lock.svg",
+            pos_x=0.6,
+            pos_y=0,
+            width=0.4,
+            height=0.2,
+            highlight=colors[6],
+            mouse_callbacks={
+                "Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')
+            }
+        ),
+        PopupImage(
+            filename="~/.config/qtile/assets/logout.svg",
+            pos_x=0.6,
+            pos_y=0.27,
+            width=0.4,
+            height=0.2,
+            highlight=colors[6],
+            mouse_callbacks={
+                "Button1": lazy.shutdown()
+            }
+        ),
+        PopupImage(
+            filename="~/.config/qtile/assets/restart.svg",
+            pos_x=0.6,
+            pos_y=0.535,
+            width=0.4,
+            height=0.2,
+            highlight=colors[6],
+            mouse_callbacks={
+                "Button1": lazy.spawn("systemctl reboot")
+            }
+        ),
+        PopupImage(
+            filename="~/.config/qtile/assets/shutdown.svg",
+            pos_x=0.6,
+            pos_y=0.8,
+            width=0.4,
+            height=0.2,
+            highlight=colors[6],
+            mouse_callbacks={
+                "Button1": lazy.spawn("systemctl poweroff")
+            }
+        ),
+
+        PopupText(
+            text="Lock",
+            font='monospace',
+            fontsize=18,
+            pos_x=0.05,
+            pos_y=0.075,
+            width=0.5,
+            height=0.075,
+            foreground=colors[0],
+            h_align="center"
+        ),
+        PopupText(
+            text="Logout",
+            font='monospace',
+            fontsize=18,
+            pos_x=0.05,
+            pos_y=0.325,
+            width=0.5,
+            height=0.075,
+            foreground=colors[0],
+            h_align="center"
+        ),
+        PopupText(
+            text="Restart",
+            font='monospace',
+            fontsize=18,
+            pos_x=0.05,
+            pos_y=0.595,
+            width=0.5,
+            height=0.075,
+            foreground=colors[0],
+            h_align="center"
+        ),
+        PopupText(
+            text="Shutdown",
+            font='monospace',
+            fontsize=18,
+            pos_x=0.05,
+            pos_y=0.85,
+            width=0.5,
+            height=0.075,
+            foreground=colors[0],
+            h_align="center"
+        ),
+    ]
+
+    layout = PopupRelativeLayout(
+        qtile,
+        width=190,
+        height=250,
+        border_width=1,
+        border=colors[6],
+        controls=controls,
+        background=colors[1],
+        initial_focus=None,
+    )
+    #layout.show(centered=True)
+    layout.show(x=3245, y=66, warp_pointer=False)
 
 # Parsing : remove all text.
 def txt_remove(text):
@@ -68,7 +182,7 @@ def init_colors():
             ["#f5c2e7", "#f5c2e7"], # color 3 Pink 
             ["00000000", "00000000"], # color 4 Transparent
             ["#f3f4f5", "#f3f4f5"], # color 5 White
-            ["#45475a", "#45475a"], # color 6 Surface 0 Catppuccin Mocha
+            ["#45475a", "#45475a"], # color 6 Surface 0
             ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base with 66% transparency
             ["#f3f4f500", "#f3f4f500"], # color 8 White 66 % Tranparency
             ["#11111b", "#11111b"], # color 9 Crust
@@ -110,7 +224,7 @@ keys = [
     Key([mod, "shift"], "Down", lazy.layout.grow_down(), desc="Grow window down"),
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
-    Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
+    #Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
     	
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
@@ -137,10 +251,12 @@ keys = [
     Key([mod],"w", lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher"), desc="Launch Rofi"),
     Key([mod],"x", lazy.spawn("geany"), desc="Launch Geany editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
-    Key([mod],"s", lazy.spawn("archlinux-logout"), desc="archlinux-logout"),
+    Key([mod],"s", lazy.function(show_power_menu), desc="Power Menu"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch Terminal"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
+    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP")),
+    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP")),
 
 	# Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
@@ -241,7 +357,7 @@ decor_exit = {
             #colour="#45475a",
             use_widget_background=True,
             line_width= 0,
-            radius=[15, 15, 15, 15],
+            radius=15,
             filled=True,
             padding_y=10,
             padding_x=0,
@@ -269,7 +385,7 @@ decor_side = {
 widget_defaults = dict(
     font="monospace",
     fontsize=30,
-    padding=10,
+    padding=8,
 )
 extension_defaults = widget_defaults.copy()
 
@@ -279,7 +395,7 @@ screens = [
             [
                 widget.Spacer(length=15),   
                 widget.Image(
-                       filename="~/.config/qtile/images/arch-catppuccin.png",
+                       filename="~/.config/qtile/assets/arch-catppuccin.png",
                        background = colors[4],
                        margin_y = 3, 
                        margin_x= 0,
@@ -322,7 +438,7 @@ screens = [
                        visible_groups=['1', '2', '3'],
                        **decor_nogroup
                 ),
-                widget.Spacer(length=5),                 
+                widget.Spacer(length=5),
                 widget.Prompt(),
                 widget.Chord(
                       chords_colors={
@@ -330,7 +446,7 @@ screens = [
                        },
                        name_transform=lambda name: name.upper(),
                 ),  
-                widget.Spacer(length=5),     
+                widget.Spacer(length=5),
 				widget.TaskList(
                        highlight_method="block",
                        border=colors[4],
@@ -365,8 +481,8 @@ screens = [
                        #background = colors[1],
                        #**decor_update
                 ),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[13],background=colors[1],update_interval=5, **decor_mem),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[12], background=colors[1],update_interval=5, **decor_mem),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
                 widget.Spacer(length=10),
                 widget.Clock( 
@@ -374,18 +490,25 @@ screens = [
                        foreground = colors[10],
                        background=colors[1],
                        fontsize = 24,
-                       format=" %a-%d  %H:%M",
+                       format=" %H:%M",
                        **decor_clock, 
+                ),
+                widget.Clock( 
+                       padding = 10,
+                       foreground = colors[14],
+                       background=colors[1],
+                       fontsize = 24,
+                       format=" %a-%d",
+                       **decor_clock,
                 ),
                 widget.Spacer(length=10),
                 widget.ALSAWidget(
                        mouse_callbacks={"Button1": lazy.spawn("pavucontrol")},
                        mode='both',
                        theme_path="/usr/share/icons/Papirus-Dark",
-                       icon_size=32,
+                       icon_size=34,
                        fontsize=20,
-                       padding_y=0,
-                       padding_x=8,
+                       padding=5,
                        bar_width=60,
                        bar_colour_high=colors[10],
                        bar_colour_loud=colors[15],
@@ -397,18 +520,26 @@ screens = [
                        **decor_exit,
                        ),
                 widget.StatusNotifier(
-                       icon_size=32,
+                       icon_size=34,
                        icon_theme="/usr/share/icons/Papirus-Dark",
-                       padding = 8,
-                       hide_after=0.1,
-                       menu_width=385,
-                       show_menu_icons=True, 
+                       padding = 5,
+                       hide_after=5,
+                       menu_width=370,
+                       show_menu_icons=True,
                        background=colors[1],
-                       highlight_colour=colors[6],
+                       highlight_colour=colors[3],
                        menu_background=colors[1],
                        menu_foreground=colors[0],
+                       menu_foreground_disabled=colors[2],
+                       menu_icon_size=16,
+                       menu_fontsize=16,
+                       menu_foreground_highlighted=colors[9],
+                       highlight_radius=7.5,
                        separator_colour=colors[15],
-                       menu_fontsize = 16,
+                       menu_border=colors[6],
+                       menu_border_width=1,
+                       menu_offset_x=2,
+                       menu_offset_y=6,
                        **decor_exit,
 				),
                 widget.TextBox(
@@ -416,33 +547,31 @@ screens = [
                        fontsize=22, 
                        foreground=colors[15],
                        background=colors[1],
-                       padding=-5,
-                       **decor_exit, 
+                       padding=-7,
+                       **decor_exit,
 				),   
                 widget.TextBox(
-                       mouse_callbacks={"Button1": lazy.spawn("archlinux-logout")},
-                       #exit_script='archlinux-logout',
+                       mouse_callbacks={"Button1": lazy.function(show_power_menu)},
                        font = "FontAwesome", 
                        text="", 
                        fontsize=27, 
                        foreground=colors[5],
                        background=colors[1],
                        padding=12,
-                       **decor_exit, 
+                       **decor_exit,
                 ),
-                #widget.Spacer(length=10,background=colors[1], **decor_exit), 
-                widget.Spacer(length=3), 
+             #   widget.Spacer(length=1), 
              #   widget.Systray(
              #          background=colors[4],
              #          icon_size = 40,
               #         padding = 10,
              #   ),
            ],
-        60, background=colors[4], margin = [3,3,0,3], opacity=1,
+        60, background=colors[4], margin = [2,4,0,0], opacity=1,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ), 
-                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+                       wallpaper="~/.config/qtile/assets/wallhaven-dpqjwj-3440.png",
                        wallpaper_mode="fill",
 	),
 
@@ -507,7 +636,7 @@ screens = [
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),                       
-                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+                       wallpaper="~/.config/qtile/assets/wallhaven-dpqjwj-3440.png",
                        wallpaper_mode="fill",
         ),
         
@@ -572,7 +701,7 @@ screens = [
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
-                       wallpaper="~/.config/qtile/images/wallhaven-dpqjwj-3440.png",
+                       wallpaper="~/.config/qtile/assets/wallhaven-dpqjwj-3440.png",
                        wallpaper_mode="fill",
     ),   
 ]
@@ -626,7 +755,6 @@ floating_layout = layout.Floating(
         Match(wm_class="cinnamon-settings screensaver"),  # screensaver
         Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
         Match(wm_class="virt-manager"), # Virtual Manager
-        #Match(title="ArchLinux Logout"), # Logout screen
         Match(title="branchdialog"),  # gitk
         Match(title="Calculator"), #calculator
         Match(title="pinentry"),  # GPG key password entry
@@ -698,3 +826,9 @@ def assign_groups_to_screens():
 			qtile.groups_map["8"].toscreen(2)
 		except IndexError:
 			pass
+
+# Activate VPN nm-applet needs to be loaded before attempting to connect to VPN. This is the reason of asyncio.sleep()
+@hook.subscribe.startup_complete
+async def start_vpn():
+	await asyncio.sleep(2)
+	qtile.spawn("nmcli con up Nederland-PPTP")
