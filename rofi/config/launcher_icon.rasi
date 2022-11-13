@@ -4,7 +4,7 @@ configuration {
     drun-display-format:            "{icon} {name}";
     disable-history:                false;
     click-to-exit: 		            true;
-    location:                       0;
+    location:                       1;
 }
 
 @import "font.rasi"
@@ -19,9 +19,8 @@ window {
     border-radius:                  15px;
     width:                          500px;
     height:                         900px;
-    anchor:                         center;
-    x-offset:                       0;
-    y-offset:                       0;
+    x-offset:                       4;
+    y-offset:                       4.65%;
 }
 
 prompt {

@@ -8,4 +8,4 @@ rofi \
 	-no-drun-show-actions \
 	-terminal gnome-terminal \
 	-kb-cancel Escape \
-	-theme "$HOME"/.config/qtile/rofi/config/launcher.rasi
+	-theme "$HOME"/.config/qtile/rofi/config/launcher_icon.rasi

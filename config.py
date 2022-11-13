@@ -1,7 +1,7 @@
 import os
 import subprocess
-import time
 import asyncio
+import psutil
 
 from libqtile import bar, layout, hook, qtile
 from libqtile.log_utils import logger
@@ -11,7 +11,6 @@ from libqtile.widget import Spacer
 
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration
-
 from qtile_extras.popup.toolkit import (
     PopupRelativeLayout,
     PopupImage,
@@ -19,7 +18,6 @@ from qtile_extras.popup.toolkit import (
 )
 
 def show_power_menu(qtile):
-
     controls = [
         PopupImage(
             filename="~/.config/qtile/assets/lock.svg",
@@ -27,7 +25,9 @@ def show_power_menu(qtile):
             pos_y=0,
             width=0.4,
             height=0.2,
-            highlight=colors[6],
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/lock_blur.svg",
+            #highlight=colors[6],
             mouse_callbacks={
                 "Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')
             }
@@ -38,7 +38,9 @@ def show_power_menu(qtile):
             pos_y=0.27,
             width=0.4,
             height=0.2,
-            highlight=colors[6],
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/logout_blur.svg",
+            #highlight=colors[6],
             mouse_callbacks={
                 "Button1": lazy.shutdown()
             }
@@ -49,7 +51,9 @@ def show_power_menu(qtile):
             pos_y=0.535,
             width=0.4,
             height=0.2,
-            highlight=colors[6],
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/restart_blur.svg",
+            #highlight=colors[6],
             mouse_callbacks={
                 "Button1": lazy.spawn("systemctl reboot")
             }
@@ -60,7 +64,9 @@ def show_power_menu(qtile):
             pos_y=0.8,
             width=0.4,
             height=0.2,
-            highlight=colors[6],
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/shutdown_blur.svg",
+            #highlight=colors[6],
             mouse_callbacks={
                 "Button1": lazy.spawn("systemctl poweroff")
             }
@@ -68,46 +74,46 @@ def show_power_menu(qtile):
 
         PopupText(
             text="Lock",
-            font='monospace',
+            font='monospace Bold',
             fontsize=18,
             pos_x=0.05,
             pos_y=0.075,
             width=0.5,
             height=0.075,
-            foreground=colors[0],
+            foreground=colors[15],
             h_align="center"
         ),
         PopupText(
             text="Logout",
-            font='monospace',
+            font='monospace Bold',
             fontsize=18,
             pos_x=0.05,
             pos_y=0.325,
             width=0.5,
             height=0.075,
-            foreground=colors[0],
+            foreground=colors[10],
             h_align="center"
         ),
         PopupText(
             text="Restart",
-            font='monospace',
+            font='monospace Bold',
             fontsize=18,
             pos_x=0.05,
             pos_y=0.595,
             width=0.5,
             height=0.075,
-            foreground=colors[0],
+            foreground=colors[12],
             h_align="center"
         ),
         PopupText(
             text="Shutdown",
-            font='monospace',
+            font='monospace Bold',
             fontsize=18,
             pos_x=0.05,
             pos_y=0.85,
             width=0.5,
             height=0.075,
-            foreground=colors[0],
+            foreground=colors[13],
             h_align="center"
         ),
     ]
@@ -121,9 +127,12 @@ def show_power_menu(qtile):
         controls=controls,
         background=colors[1],
         initial_focus=None,
+        hide_interval=0.7,
+        hide_on_mouse_leave=True
     )
     #layout.show(centered=True)
-    layout.show(x=3245, y=66, warp_pointer=False)
+    #layout.show(x=3245, y=66, warp_pointer=False)
+    layout.show(x=-6, y=0.003, warp_pointer=False,relative_to=3,relative_to_bar=True)
 
 # Parsing : remove all text.
 def txt_remove(text):
@@ -184,7 +193,7 @@ def init_colors():
             ["#f3f4f5", "#f3f4f5"], # color 5 White
             ["#45475a", "#45475a"], # color 6 Surface 0
             ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base with 66% transparency
-            ["#f3f4f500", "#f3f4f500"], # color 8 White 66 % Tranparency
+            ["#f3f4f500", "#f3f4f500"], # color 8 White 66 % tranparency for highlight
             ["#11111b", "#11111b"], # color 9 Crust
             ["#fab387", "#fab387"], # color 10 Peach
             ["#f9e2af", "#f9e2af"], # color 11 Yellow
@@ -225,7 +234,7 @@ keys = [
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     #Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
-    	
+    
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -248,15 +257,15 @@ keys = [
 
 	# Launch Applications
     Key([mod],"e", lazy.spawn("nemo"), desc="Launch Nemo"),
-    Key([mod],"w", lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher"), desc="Launch Rofi"),
+    Key([mod],"w", lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher')), desc="Launch Rofi"),
     Key([mod],"x", lazy.spawn("geany"), desc="Launch Geany editor"),
     Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
     Key([mod],"s", lazy.function(show_power_menu), desc="Power Menu"),
     Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch Terminal"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
     Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
-    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP")),
-    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP")),
+    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP"), desc="Connect PureVPN"),
+    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
 
 	# Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
@@ -264,7 +273,7 @@ keys = [
 	# Qtile commands
     Key([mod, "mod1"], "r", lazy.restart(), desc="Restart Qtile"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
-    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
+    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile and logout"),
 ]
 
 groups = [
@@ -280,7 +289,7 @@ groups = [
 ]
 
 for i in groups:
-    keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name))))
+    keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name)), desc="Switch to group {}".format(i.name)))
     keys.append(Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name)))
 
 # Decoration setting for group clock Rect.Decoraction
@@ -395,15 +404,18 @@ screens = [
             [
                 widget.Spacer(length=15),   
                 widget.Image(
-                       filename="~/.config/qtile/assets/arch-catppuccin.png",
+                       filename="~/.config/qtile/assets/arch_linux_icon_blue_pink.svg",
                        background = colors[4],
-                       margin_y = 3, 
-                       margin_x= 0,
-                       mouse_callbacks={"Button1": lazy.spawn("/home/crystal/.config/qtile/rofi/bin/launcher")},
+                       margin_y = 6, 
+                       mouse_callbacks={"Button1": lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher_icon'))},
                        #**decor_nogroup
                 ),  
                 widget.Spacer(length=5), 
-                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
+                widget.CurrentLayoutIcon(
+                       scale = 0.66, 
+                       use_mask = True, 
+                       foreground=colors[3],
+                       ), 
            #     widget.LaunchBar(progs=[
            #             ('org.gnome.Terminal', 'gnome-terminal + "neofetch"', 'Launch terminal'),
            #             ('nemo', 'nemo', 'Launch File Manager'),
@@ -416,7 +428,7 @@ screens = [
            #                           ], 
            #             padding = 15, padding_y = -2, icon_size=40,**decor_nogroup
            #     ),
-                widget.Spacer(length=8),   
+                #widget.Spacer(length=8),   
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 35,
@@ -503,7 +515,7 @@ screens = [
                 ),
                 widget.Spacer(length=10),
                 widget.ALSAWidget(
-                       mouse_callbacks={"Button1": lazy.spawn("pavucontrol")},
+                       mouse_callbacks={"Button3": lazy.spawn("pavucontrol")},
                        mode='both',
                        theme_path="/usr/share/icons/Papirus-Dark",
                        icon_size=34,
@@ -513,6 +525,7 @@ screens = [
                        bar_colour_high=colors[10],
                        bar_colour_loud=colors[15],
                        bar_colour_normal=colors[13],
+                       bar_colour_mute=colors[1],
                        foreground=colors[5],
                        background=colors[1],
                        update_interval=5,
@@ -551,7 +564,7 @@ screens = [
                        **decor_exit,
 				),   
                 widget.TextBox(
-                       mouse_callbacks={"Button1": lazy.function(show_power_menu)},
+                       mouse_callbacks={"Button1": lazy.function(show_power_menu), "Button3": lazy.function(show_power_menu)},
                        font = "FontAwesome", 
                        text="", 
                        fontsize=27, 
@@ -618,8 +631,8 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[13],background=colors[1],update_interval=5, **decor_mem),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[12], background=colors[1],update_interval=5, **decor_mem),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
                 widget.Spacer(length=10),
                 widget.Clock( 
@@ -630,7 +643,7 @@ screens = [
                        format=" %H:%M",
                        **decor_clock, 
                 ),
-                widget.Spacer(length=3,), 
+                widget.Spacer(length=3), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
@@ -683,8 +696,8 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[13],background=colors[1],update_interval=5, **decor_mem),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[12], background=colors[1],update_interval=5, **decor_mem),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
                 widget.Spacer(length=10),
                 widget.Clock( 
@@ -827,8 +840,35 @@ def assign_groups_to_screens():
 		except IndexError:
 			pass
 
-# Activate VPN nm-applet needs to be loaded before attempting to connect to VPN. This is the reason of asyncio.sleep()
+# Activate VPN. nm-applet needs to be loaded before attempting to connect to VPN. This is the reason of asyncio.sleep()
 @hook.subscribe.startup_complete
 async def start_vpn():
 	await asyncio.sleep(2)
 	qtile.spawn("nmcli con up Nederland-PPTP")
+
+# Swallow application launched from gnome terminal
+@hook.subscribe.client_new
+def _swallow(window):
+    pid = window.window.get_net_wm_pid()
+    ppid = psutil.Process(pid).ppid()
+    cpids = {c.window.get_net_wm_pid(): wid for wid, c in window.qtile.windows_map.items()}
+    for i in range(5):
+        if not ppid:
+            return
+        if ppid in cpids:
+            parent = window.qtile.windows_map.get(cpids[ppid])
+            if parent.window.get_wm_class()[0] != "gnome-terminal-server":
+                return
+            parent.minimized = True
+            window.parent = parent
+            return
+        ppid = psutil.Process(ppid).ppid()
+
+@hook.subscribe.client_killed
+def _unswallow(window):
+    if hasattr(window, 'parent'):
+        window.parent.minimized = False
+
+
+
+
