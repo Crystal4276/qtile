@@ -21,107 +21,102 @@ def show_power_menu(qtile):
     controls = [
         PopupImage(
             filename="~/.config/qtile/assets/lock.svg",
-            pos_x=0.6,
-            pos_y=0,
-            width=0.4,
-            height=0.2,
+            pos_x=0,
+            pos_y=0.02,
+            width=1.0,
+            height=0.15,
             highlight_method='image',
             highlight_filename="~/.config/qtile/assets/lock_blur.svg",
-            #highlight=colors[6],
-            mouse_callbacks={
-                "Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')
-            }
+            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')}
         ),
-        PopupImage(
-            filename="~/.config/qtile/assets/logout.svg",
-            pos_x=0.6,
-            pos_y=0.27,
-            width=0.4,
-            height=0.2,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/logout_blur.svg",
-            #highlight=colors[6],
-            mouse_callbacks={
-                "Button1": lazy.shutdown()
-            }
-        ),
-        PopupImage(
-            filename="~/.config/qtile/assets/restart.svg",
-            pos_x=0.6,
-            pos_y=0.535,
-            width=0.4,
-            height=0.2,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/restart_blur.svg",
-            #highlight=colors[6],
-            mouse_callbacks={
-                "Button1": lazy.spawn("systemctl reboot")
-            }
-        ),
-        PopupImage(
-            filename="~/.config/qtile/assets/shutdown.svg",
-            pos_x=0.6,
-            pos_y=0.8,
-            width=0.4,
-            height=0.2,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/shutdown_blur.svg",
-            #highlight=colors[6],
-            mouse_callbacks={
-                "Button1": lazy.spawn("systemctl poweroff")
-            }
-        ),
-
         PopupText(
             text="Lock",
             font='monospace Bold',
             fontsize=18,
-            pos_x=0.05,
-            pos_y=0.075,
-            width=0.5,
+            pos_x=0,
+            pos_y=0.17,
+            width=1,
             height=0.075,
             foreground=colors[15],
-            h_align="center"
+            h_align="center",
+            can_focus=False,
+            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')}
+        ),
+        PopupImage(
+            filename="~/.config/qtile/assets/logout.svg",
+            pos_x=0.0,
+            pos_y=0.27,
+            width=1.0,
+            height=0.15,
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/logout_blur.svg",
+            mouse_callbacks={"Button1": lazy.shutdown()}
         ),
         PopupText(
             text="Logout",
             font='monospace Bold',
             fontsize=18,
-            pos_x=0.05,
-            pos_y=0.325,
-            width=0.5,
+            pos_x=0.0,
+            pos_y=0.42,
+            width=1.0,
             height=0.075,
             foreground=colors[10],
-            h_align="center"
+            h_align="center",
+            can_focus=False,
+            mouse_callbacks={"Button1": lazy.shutdown()}
+        ),
+        PopupImage(
+            filename="~/.config/qtile/assets/restart.svg",
+            pos_x=0.0,
+            pos_y=0.52,
+            width=1.0,
+            height=0.15,
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/restart_blur.svg",
+            mouse_callbacks={"Button1": lazy.spawn("systemctl reboot")}
         ),
         PopupText(
             text="Restart",
             font='monospace Bold',
             fontsize=18,
-            pos_x=0.05,
-            pos_y=0.595,
-            width=0.5,
+            pos_x=0,
+            pos_y=0.67,
+            width=1,
             height=0.075,
             foreground=colors[12],
-            h_align="center"
+            h_align="center",
+            can_focus=False,
+            mouse_callbacks={"Button1": lazy.spawn("systemctl reboot")}
+        ),
+        PopupImage(
+            filename="~/.config/qtile/assets/shutdown.svg",
+            pos_x=0,
+            pos_y=0.77,
+            width=1.0,
+            height=0.15,
+            highlight_method='image',
+            highlight_filename="~/.config/qtile/assets/shutdown_blur.svg",
+            mouse_callbacks={"Button1": lazy.spawn("systemctl poweroff")}
         ),
         PopupText(
             text="Shutdown",
             font='monospace Bold',
             fontsize=18,
-            pos_x=0.05,
-            pos_y=0.85,
-            width=0.5,
+            pos_x=0,
+            pos_y=0.92,
+            width=1,
             height=0.075,
             foreground=colors[13],
-            h_align="center"
+            h_align="center",
+            can_focus=False,
+            mouse_callbacks={"Button1": lazy.spawn("systemctl poweroff")}
         ),
     ]
 
     layout = PopupRelativeLayout(
         qtile,
-        width=190,
-        height=250,
+        width=100,
+        height=350,
         border_width=1,
         border=colors[6],
         controls=controls,
@@ -130,8 +125,6 @@ def show_power_menu(qtile):
         hide_interval=0.7,
         hide_on_mouse_leave=True
     )
-    #layout.show(centered=True)
-    #layout.show(x=3245, y=66, warp_pointer=False)
     layout.show(x=-6, y=0.003, warp_pointer=False,relative_to=3,relative_to_bar=True)
 
 # Parsing : remove all text.
@@ -182,6 +175,27 @@ def go_to_group(name: str) -> callable:
             qtile.groups_map[name].toscreen()
     return _inner
 
+def _scroll_screen(direction: int) -> callable:
+    """
+    Scroll to the next/prev group of the subset allocated to a specific screen. This
+    will rotate between e.g. 1->2->3->1 when the first screen is focussed.
+    """
+    def _inner(qtile: qtile):
+        if len(qtile.screens) == 1:
+            current = qtile.groups.index(qtile.current_group)
+            destination = (current + direction) % 9
+            qtile.groups[destination].toscreen()
+            return
+        current = qtile.groups.index(qtile.current_group)
+        if current < 3:
+            destination = (current + direction) % 3
+        elif current < 6:
+            destination = ((current - 3 + direction) % 3) + 3
+        else:
+            destination = ((current - 6 + direction) % 3) + 6
+        qtile.groups[destination].toscreen()
+    return _inner
+
 # Theme name : Catppuccin Mocha 
 # https://github.com/catppuccin/catppuccin#-palettes
 def init_colors():
@@ -211,6 +225,7 @@ def minimize_all(qtile):
         if hasattr(win, "toggle_minimize"):
             win.toggle_minimize()
 
+
 mod = "mod4"
 
 keys = [
@@ -234,7 +249,7 @@ keys = [
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     #Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
-    
+
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -255,6 +270,10 @@ keys = [
     Key([mod],"f", lazy.window.toggle_fullscreen(), desc="Make window fullscreen"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
 
+    # Toggle between different group and layouts as defined below
+    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "quoteleft", lazy.function(_scroll_screen(1)), desc="Screen groups forward"),
+
 	# Launch Applications
     Key([mod],"e", lazy.spawn("nemo"), desc="Launch Nemo"),
     Key([mod],"w", lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher')), desc="Launch Rofi"),
@@ -266,9 +285,6 @@ keys = [
     Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
     Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP"), desc="Connect PureVPN"),
     Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
-
-	# Toggle between different layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
 
 	# Qtile commands
     Key([mod, "mod1"], "r", lazy.restart(), desc="Restart Qtile"),
@@ -459,7 +475,7 @@ screens = [
                        name_transform=lambda name: name.upper(),
                 ),  
                 widget.Spacer(length=5),
-				widget.TaskList(
+                widget.TaskList(
                        highlight_method="block",
                        border=colors[4],
                        borderwidth=0,
@@ -493,9 +509,32 @@ screens = [
                        #background = colors[1],
                        #**decor_update
                 ),
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=24, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=24, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
+                widget.NvidiaSensors(
+                    format=':{temp}°C', 
+                    fontsize=24, 
+                    foreground=colors[13], 
+                    background=colors[1],
+                    update_interval=5, 
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c watch -n2 nvidia-smi\"")}, 
+                    **decor_mem
+                    ),
+                widget.CPU(
+                    format=":{load_percent:2.0f}%", 
+                    fontsize=24, 
+                    foreground=colors[12],
+                    background=colors[1],
+                    update_interval=5,
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                    **decor_mem),
+                widget.Memory(
+                    format="﬙:{MemUsed:2.0f}{mm}", 
+                    measure_mem='G', 
+                    fontsize=24, 
+                    foreground=colors[11], 
+                    background=colors[1], 
+                    update_interval=5,
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                    **decor_mem),
                 widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
@@ -695,7 +734,33 @@ screens = [
                        theme_path="/usr/share/icons/Papirus-Dark",
                        theme_mode="preferred",
                 ),
-                widget.Spacer(), 
+                widget.Spacer(),
+                widget.Net(
+                       padding=0,
+                       foreground = colors[16],
+                       background=colors[1],
+                       fontsize = 22,
+                       prefix ='M',
+                       interface='eno2',
+                       use_bits=False,
+                       format=" {up} {down}",
+                       update_interval=5,
+                       **decor_clock,
+                       ),
+                widget.NetGraph(
+                       padding = 0,
+                       graph_color = colors[16],
+                       background = colors[1],
+                       border_width=2,
+                       interface='eno2',
+                       bandwidth_type= "down",
+                       frequency=1,
+                       margin_x=15,
+                       margin_y=12,
+                       samples=40,
+                       **decor_clock,
+                       ),
+                widget.Spacer(10), 
                 widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
                 widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
                 widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
@@ -745,7 +810,8 @@ layouts = [
 mouse = [
     Drag([mod], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
     Drag([mod], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()),
-    Click([mod], "Button2", lazy.window.bring_to_front()),
+    #Click([mod], "Button2", lazy.window.bring_to_front()),
+    Click([mod], "Button2", lazy.window.toggle_floating()),
 ]
 
 dgroups_key_binder = None
@@ -828,6 +894,12 @@ def float_steam(window):
         )
     ):
         window.floating = True
+    elif w_name == "EVE":
+        window.togroup("3")
+        qtile.groups_map["3"].toscreen(0)
+    elif w_name == "Wine System Tray":
+        window.togroup("9")
+
 
 # Activate group 6, 7, and 1 after startup
 @hook.subscribe.startup_complete
@@ -836,7 +908,7 @@ def assign_groups_to_screens():
 		try:
 			qtile.groups_map["1"].toscreen(0)
 			qtile.groups_map["6"].toscreen(1)
-			qtile.groups_map["8"].toscreen(2)
+			qtile.groups_map["8"].toscreen(2, toggle=True)
 		except IndexError:
 			pass
 
@@ -869,6 +941,29 @@ def _unswallow(window):
     if hasattr(window, 'parent'):
         window.parent.minimized = False
 
-
-
-
+# Send any applications opened on screen 2 to screen 0 and apply Max layout
+@hook.subscribe.client_managed
+async def _screen0(window):
+    wm_class = window.window.get_wm_class()
+    w_name = window.window.get_name()
+    #logger.warning(wm_class)
+    #logger.warning(w_name)
+    if ((window.group.screen.index == 2) 
+        and (wm_class != ['Mail', 'thunderbird']) 
+        and (wm_class != ['deluge', 'Deluge-gtk'])
+        and (wm_class != ['deluge', 'Deluge'])  
+        and (wm_class != ['Steam', 'Steam'])
+    ):
+        window.togroup("3")
+        qtile.groups_map["3"].toscreen(0)
+        #window.group.setlayout("max")
+    elif w_name == "Wine System Tray":
+        window.togroup("9")
+    elif w_name == "EVE Launcher":
+        window.togroup("9")
+        window.center
+    elif w_name =="EXAPUNKS":
+        window.togroup("3")
+        window.toggle_floating()
+        qtile.groups_map["3"].toscreen(0)
+        #window.group.setlayout("max")
