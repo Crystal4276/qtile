@@ -10,7 +10,7 @@ from libqtile.lazy import lazy
 from libqtile.widget import Spacer
 
 from qtile_extras import widget
-from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration
+from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration, BorderDecoration
 from qtile_extras.popup.toolkit import (
     PopupRelativeLayout,
     PopupImage,
@@ -118,7 +118,7 @@ def show_power_menu(qtile):
         width=100,
         height=350,
         border_width=1,
-        border=colors[6],
+        border=colors[17],
         controls=controls,
         background=colors[1],
         initial_focus=None,
@@ -216,6 +216,7 @@ def init_colors():
             ["#eba0ac", "#eba0ac"], # color 14 Maroon (Reddish/pink)
             ["#f38ba8", "#f38ba8"], # color 15 Red
             ["#89dceb", "#89dceb"], # color 16 Sky (Blue)
+            ["#585b70"], # color 17 Surface 2 (grey)
            ] 
 colors = init_colors()
 
@@ -226,15 +227,18 @@ def minimize_all(qtile):
             win.toggle_minimize()
 
 
-mod = "mod4"
+mod = "mod4" # Super Key
+mod1 = "mod1" # Alt Key
 
 keys = [
     # Switch between windows
-    Key([mod,"mod1"], "Left", lazy.layout.left(), desc="Move focus to left"),
-    Key([mod,"mod1"], "Right", lazy.layout.right(), desc="Move focus to right"),
-    Key([mod,"mod1"], "Down", lazy.layout.down(), desc="Move focus down"),
-    Key([mod,"mod1"], "Up", lazy.layout.up(), desc="Move focus up"),
+    Key([mod, mod1], "Left", lazy.layout.left(), desc="Move focus to left"),
+    Key([mod, mod1], "Right", lazy.layout.right(), desc="Move focus to right"),
+    Key([mod, mod1], "Down", lazy.layout.down(), desc="Move focus down"),
+    Key([mod, mod1], "Up", lazy.layout.up(), desc="Move focus up"),
     Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    Key([mod1], "Tab", lazy.layout.next(), desc="Move window focus to other window"),
+
     
     # Move windows between left/right columns or move up/down in current stack.
     Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
@@ -249,7 +253,7 @@ keys = [
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     #Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
-
+    Key([mod], "d", lazy.spawn("killall dunst"), lazy.spawn("notify-send \"this is a sfaskjhfasjhfkajhsfkajhsfkajhsfkjaksfjaksjgfkajgsflasf kjagslkjfgaklsjgfkajsgfkjasgfkjhagskjlfgakjlsgflkaj fasfasfasfasfasfasfasfasftitle\"")),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -287,7 +291,7 @@ keys = [
     Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
 
 	# Qtile commands
-    Key([mod, "mod1"], "r", lazy.restart(), desc="Restart Qtile"),
+    Key([mod, mod1], "r", lazy.restart(), desc="Restart Qtile"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile and logout"),
 ]
@@ -339,7 +343,7 @@ decor_mem = {
             padding_x=0,
             group=True,
             clip=False,
-        )
+        ),
     ],
 }
 
@@ -352,10 +356,20 @@ decor_nogroup = {
             line_width= 0,
             radius=[15, 15, 15, 15],
             filled=True,
-            padding_y=10,
+            padding_y=6,
             padding_x=0,
             group=False,
-        )
+        ), 
+        RectDecoration(
+            colour=colors[17],
+            #use_widget_background=True,
+            line_width= 2,
+            radius=15,
+            filled=False,
+            padding_y=6,
+            padding_x=0,
+            group=False,
+        ), 
     ],
 }
 
@@ -422,14 +436,14 @@ screens = [
                 widget.Image(
                        filename="~/.config/qtile/assets/arch_linux_icon_blue_pink.svg",
                        background = colors[4],
-                       margin_y = 6, 
+                       margin_y = 8, 
                        mouse_callbacks={"Button1": lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher_icon'))},
                        #**decor_nogroup
                 ),  
-                widget.Spacer(length=5), 
                 widget.CurrentLayoutIcon(
                        scale = 0.66, 
-                       use_mask = True, 
+                       custom_icon_paths = [os.path.expanduser("~/.config/qtile/assets/layout")],
+                       #use_mask = True, 
                        foreground=colors[3],
                        ), 
            #     widget.LaunchBar(progs=[
@@ -458,7 +472,7 @@ screens = [
                        inactive = colors[2],
                        highlight_method='border',
                        this_current_screen_border = colors[3],
-                       other_current_screen_border=colors[6],
+                       other_current_screen_border=colors[0],
                        this_screen_border=colors[3],
                        urgent_border=colors[3],
                        urgent_text=colors[3],
@@ -588,7 +602,7 @@ screens = [
                        menu_foreground_highlighted=colors[9],
                        highlight_radius=7.5,
                        separator_colour=colors[15],
-                       menu_border=colors[6],
+                       menu_border=colors[17],
                        menu_border_width=1,
                        menu_offset_x=2,
                        menu_offset_y=6,
@@ -631,7 +645,7 @@ screens = [
         top=bar.Bar(
             [
                 widget.Spacer(-8), 
-                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
+                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = [os.path.expanduser("~/.config/qtile/assets/layout")], foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 35,
@@ -696,7 +710,7 @@ screens = [
         top=bar.Bar(
             [
                 widget.Spacer(-8), 
-                widget.CurrentLayoutIcon(scale = 0.66, use_mask = True, foreground=colors[3]), 
+                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = [os.path.expanduser("~/.config/qtile/assets/layout")], foreground=colors[3]), 
                 widget.GroupBox(
                        font="monospace",
                        fontsize = 36,
@@ -743,12 +757,12 @@ screens = [
                        prefix ='M',
                        interface='eno2',
                        use_bits=False,
+                       #format=" {up:4.1f}{up_suffix:<2} {down:4.1f}{down_suffix:<2}",
                        format=" {up} {down}",
                        update_interval=5,
                        **decor_clock,
                        ),
                 widget.NetGraph(
-                       padding = 0,
                        graph_color = colors[16],
                        background = colors[1],
                        border_width=2,
@@ -756,15 +770,15 @@ screens = [
                        bandwidth_type= "down",
                        frequency=1,
                        margin_x=15,
-                       margin_y=12,
+                       margin_y=15,
                        samples=40,
                        **decor_clock,
                        ),
                 widget.Spacer(10), 
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
-                widget.Spacer(length=10),
+                #widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
+                #widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
+                #widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
+                #widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[10],
@@ -861,7 +875,9 @@ wmname = "Qtile"
 def spotify(window):
     if window.name == "Spotify":
         window.togroup(group_name="5")
-
+    elif window.name == "EVE Launcher":
+        window.togroup(group_name="9")
+        
 # Keep floating window always above
 @hook.subscribe.group_window_add
 def window_added(group, window):
@@ -941,15 +957,28 @@ def _unswallow(window):
     if hasattr(window, 'parent'):
         window.parent.minimized = False
 
-# Send any applications opened on screen 2 to screen 0 and apply Max layout
+# Handle applications launched by either Thunderbird / Deluge / Steam on screen 2 (with some specifics)
 @hook.subscribe.client_managed
 async def _screen0(window):
     wm_class = window.window.get_wm_class()
     w_name = window.window.get_name()
     #logger.warning(wm_class)
     #logger.warning(w_name)
-    if ((window.group.screen.index == 2) 
+    if wm_class == ["steam_app_8500", "steam_app_8500"]:
+        if w_name == "Wine System Tray":
+            window.kill()
+        elif w_name =="EVE Launcher":
+            window.togroup("9")
+            #window.set_size_floating(901,946)
+            window.center()
+            window.bring_to_front()
+    elif w_name =="EXAPUNKS":
+        window.togroup("3")
+        window.toggle_floating()
+        qtile.groups_map["3"].toscreen(0)
+    elif ((window.group.screen.index == 2) 
         and (wm_class != ['Mail', 'thunderbird']) 
+        and (wm_class != ["Thunderbird", "thunderbird"])
         and (wm_class != ['deluge', 'Deluge-gtk'])
         and (wm_class != ['deluge', 'Deluge'])  
         and (wm_class != ['Steam', 'Steam'])
@@ -957,13 +986,4 @@ async def _screen0(window):
         window.togroup("3")
         qtile.groups_map["3"].toscreen(0)
         #window.group.setlayout("max")
-    elif w_name == "Wine System Tray":
-        window.togroup("9")
-    elif w_name == "EVE Launcher":
-        window.togroup("9")
-        window.center
-    elif w_name =="EXAPUNKS":
-        window.togroup("3")
-        window.toggle_floating()
-        qtile.groups_map["3"].toscreen(0)
-        #window.group.setlayout("max")
+
