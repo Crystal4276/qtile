@@ -875,8 +875,6 @@ wmname = "Qtile"
 def spotify(window):
     if window.name == "Spotify":
         window.togroup(group_name="5")
-    elif window.name == "EVE Launcher":
-        window.togroup(group_name="9")
         
 # Keep floating window always above
 @hook.subscribe.group_window_add
@@ -910,12 +908,6 @@ def float_steam(window):
         )
     ):
         window.floating = True
-    elif w_name == "EVE":
-        window.togroup("3")
-        qtile.groups_map["3"].toscreen(0)
-    elif w_name == "Wine System Tray":
-        window.togroup("9")
-
 
 # Activate group 6, 7, and 1 after startup
 @hook.subscribe.startup_complete
@@ -972,6 +964,9 @@ async def _screen0(window):
             #window.set_size_floating(901,946)
             window.center()
             window.bring_to_front()
+        elif w_name == "EVE":
+            window.togroup("3")
+            qtile.groups_map["3"].toscreen(0)
     elif w_name =="EXAPUNKS":
         window.togroup("3")
         window.toggle_floating()
