@@ -312,25 +312,8 @@ for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name)), desc="Switch to group {}".format(i.name)))
     keys.append(Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name)))
 
-# Decoration setting for group clock Rect.Decoraction
-decor_clock = {
-    "decorations": [
-        RectDecoration(
-            #colour="#94e2d5",
-            use_widget_background=True,
-            line_width= 0,
-            radius=[15, 15, 15, 15],
-            filled=True,
-            padding_y=10,
-            padding_x=0,
-            group=True,
-            extrawidth=0,
-        ),
-    ],
-}
-
-# Decoration setting for group mem Rect.Decoraction
-decor_mem = {
+# General Decoration setting
+decor_general = {
     "decorations": [
         RectDecoration(
             #colour="#a6e3a1",
@@ -339,11 +322,21 @@ decor_mem = {
             radius=[15, 15, 15, 15],
             filled=True,
             margin_y=20,
-            padding_y=10,
+            padding_y=8,
             padding_x=0,
             group=True,
             clip=False,
         ),
+        RectDecoration(
+            colour=colors[17],
+            #use_widget_background=True,
+            line_width= 1,
+            radius=[15, 15, 15, 15],
+            filled=False,
+            padding_y=8,
+            padding_x=0,
+            group=True,
+        ), 
     ],
 }
 
@@ -351,8 +344,8 @@ decor_mem = {
 decor_nogroup = {
     "decorations": [
         RectDecoration(
-            colour=colors[1],
-            #use_widget_background=True,
+            #colour=colors[1],
+            use_widget_background=True,
             line_width= 0,
             radius=[15, 15, 15, 15],
             filled=True,
@@ -363,8 +356,8 @@ decor_nogroup = {
         RectDecoration(
             colour=colors[17],
             #use_widget_background=True,
-            line_width= 2,
-            radius=15,
+            line_width= 1,
+            radius=[15, 15, 15, 15],
             filled=False,
             padding_y=6,
             padding_x=0,
@@ -373,39 +366,6 @@ decor_nogroup = {
     ],
 }
 
-# Decoration setting for update Rect.Decoraction
-decor_update = {
-    "decorations": [
-        RectDecoration(
-            #colour="#f5c2e7",
-            use_widget_background=True,
-            line_width= 0,
-            radius=[15, 15, 15, 15],
-            filled=True,
-            padding_y=10,
-            padding_x=0,
-            group=False,
-        )
-    ],
-}
-
-# Decoration setting for no grouping Rect.Decoraction
-decor_exit = {
-    "decorations": [
-        RectDecoration(
-            #colour="#45475a",
-            use_widget_background=True,
-            line_width= 0,
-            radius=15,
-            filled=True,
-            padding_y=10,
-            padding_x=0,
-            group=True,
-            clip=True,
-            #extrawidth=-10,
-        )
-    ],
-}
 # Decoration setting for no grouping side screen Rect.Decoraction
 decor_side = {
     "decorations": [
@@ -442,7 +402,7 @@ screens = [
                 ),  
                 widget.CurrentLayoutIcon(
                        scale = 0.66, 
-                       custom_icon_paths = [os.path.expanduser("~/.config/qtile/assets/layout")],
+                       custom_icon_paths = ["~/.config/qtile/assets/layout"],
                        #use_mask = True, 
                        foreground=colors[3],
                        ), 
@@ -465,8 +425,9 @@ screens = [
                        spacing = 10,
                        margin_y = 3,
                        margin_x = 15,
-                       padding = 5,
-                       #background="#45475a",
+                       padding_x=5,
+                       padding_y = 4,
+                       background=colors[1],
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
@@ -476,7 +437,7 @@ screens = [
                        this_screen_border=colors[3],
                        urgent_border=colors[3],
                        urgent_text=colors[3],
-                       borderwidth = 3,
+                       borderwidth = 2,
                        visible_groups=['1', '2', '3'],
                        **decor_nogroup
                 ),
@@ -513,16 +474,17 @@ screens = [
                 widget.Spacer(),
                 widget.CheckUpdates(
                        font = "FontAwesome",
-                       fontsize = 30,
+                       fontsize = 26,
                        custom_command = "checkupdates",
                        update_interval = 86400,
-                       display_format = "  {updates}",
+                       display_format = " {updates}",
                        mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
                        no_update_string='',
-                       colour_have_updates = colors[3],
-                       #background = colors[1],
-                       #**decor_update
+                       colour_have_updates = colors[16],
+                       background = colors[1],
+                       **decor_general
                 ),
+                widget.Spacer(length=10),
                 widget.NvidiaSensors(
                     format=':{temp}°C', 
                     fontsize=24, 
@@ -530,7 +492,7 @@ screens = [
                     background=colors[1],
                     update_interval=5, 
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c watch -n2 nvidia-smi\"")}, 
-                    **decor_mem
+                    **decor_general
                     ),
                 widget.CPU(
                     format=":{load_percent:2.0f}%", 
@@ -539,7 +501,7 @@ screens = [
                     background=colors[1],
                     update_interval=5,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
-                    **decor_mem),
+                    **decor_general),
                 widget.Memory(
                     format="﬙:{MemUsed:2.0f}{mm}", 
                     measure_mem='G', 
@@ -548,15 +510,15 @@ screens = [
                     background=colors[1], 
                     update_interval=5,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
-                    **decor_mem),
+                    **decor_general),
                 widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[10],
                        background=colors[1],
                        fontsize = 24,
-                       format=" %H:%M",
-                       **decor_clock, 
+                       format=" %H:%M",
+                       **decor_general, 
                 ),
                 widget.Clock( 
                        padding = 10,
@@ -564,7 +526,7 @@ screens = [
                        background=colors[1],
                        fontsize = 24,
                        format=" %a-%d",
-                       **decor_clock,
+                       **decor_general,
                 ),
                 widget.Spacer(length=10),
                 widget.ALSAWidget(
@@ -583,7 +545,7 @@ screens = [
                        background=colors[1],
                        update_interval=5,
                        hide_interval=2,
-                       **decor_exit,
+                       **decor_general,
                        ),
                 widget.StatusNotifier(
                        icon_size=34,
@@ -606,7 +568,7 @@ screens = [
                        menu_border_width=1,
                        menu_offset_x=2,
                        menu_offset_y=6,
-                       **decor_exit,
+                       **decor_general,
 				),
                 widget.TextBox(
                        text="", 
@@ -614,7 +576,7 @@ screens = [
                        foreground=colors[15],
                        background=colors[1],
                        padding=-7,
-                       **decor_exit,
+                       **decor_general,
 				),   
                 widget.TextBox(
                        mouse_callbacks={"Button1": lazy.function(show_power_menu), "Button3": lazy.function(show_power_menu)},
@@ -624,7 +586,7 @@ screens = [
                        foreground=colors[5],
                        background=colors[1],
                        padding=12,
-                       **decor_exit,
+                       **decor_general,
                 ),
              #   widget.Spacer(length=1), 
              #   widget.Systray(
@@ -684,17 +646,17 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
+                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_general),
+                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_general),
+                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_general),
                 widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[10],
                        background=colors[1],
                        fontsize = 22,
-                       format=" %H:%M",
-                       **decor_clock, 
+                       format=" %H:%M",
+                       **decor_general, 
                 ),
                 widget.Spacer(length=3), 
            ],
@@ -760,7 +722,7 @@ screens = [
                        #format=" {up:4.1f}{up_suffix:<2} {down:4.1f}{down_suffix:<2}",
                        format=" {up} {down}",
                        update_interval=5,
-                       **decor_clock,
+                       **decor_general,
                        ),
                 widget.NetGraph(
                        graph_color = colors[16],
@@ -772,20 +734,20 @@ screens = [
                        margin_x=15,
                        margin_y=15,
                        samples=40,
-                       **decor_clock,
+                       **decor_general,
                        ),
                 widget.Spacer(10), 
-                #widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_mem),
-                #widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_mem),
-                #widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_mem),
+                #widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_general),
+                #widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_general),
+                #widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_general),
                 #widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[10],
                        background=colors[1],
                        fontsize = 22,
-                       format=" %H:%M",
-                       **decor_clock, 
+                       format=" %H:%M",
+                       **decor_general, 
                 ),
                 widget.Spacer(length=3,), 
            ],
