@@ -76,7 +76,7 @@ def show_power_menu(qtile):
             mouse_callbacks={"Button1": lazy.spawn("systemctl reboot")}
         ),
         PopupText(
-            text="Restart",
+            text="Reboot",
             font='monospace Bold',
             fontsize=18,
             pos_x=0,
@@ -120,7 +120,7 @@ def show_power_menu(qtile):
         border_width=1,
         border=colors[17],
         controls=controls,
-        background=colors[1],
+        background=colors[7],
         initial_focus=None,
         hide_interval=0.7,
         hide_on_mouse_leave=True
@@ -178,7 +178,7 @@ def go_to_group(name: str) -> callable:
 def _scroll_screen(direction: int) -> callable:
     """
     Scroll to the next/prev group of the subset allocated to a specific screen. This
-    will rotate between e.g. 1->2->3->1 when the first screen is focussed.
+    will rotate between e.g. 1->2->3->1 when the first screen is focused.
     """
     def _inner(qtile: qtile):
         if len(qtile.screens) == 1:
@@ -200,13 +200,13 @@ def _scroll_screen(direction: int) -> callable:
 # https://github.com/catppuccin/catppuccin#-palettes
 def init_colors():
     return [["#cdd6f4", "#cdd6f4"], # color 0 Text (Blue) 
-            ["#1e1e2e", "#1e1e2e"], # color 1 Base 
+            ["#1e1e2e", "#1e1e2e"], # color 1 Base #1e1e2e
             ["#9399b2", "#9399b2"], # color 2 Overlay 2 
             ["#f5c2e7", "#f5c2e7"], # color 3 Pink 
             ["00000000", "00000000"], # color 4 Transparent
             ["#f3f4f5", "#f3f4f5"], # color 5 White
             ["#45475a", "#45475a"], # color 6 Surface 0
-            ["#1e1e2ea9", "#1e1e2ea9"], # color 7 Base with 66% transparency
+            ["11111bbf"], # color 7  Crust 75% transparency # Base 85% transparency 1e1e2ed9
             ["#f3f4f500", "#f3f4f500"], # color 8 White 66 % tranparency for highlight
             ["#11111b", "#11111b"], # color 9 Crust
             ["#fab387", "#fab387"], # color 10 Peach
@@ -231,14 +231,33 @@ mod = "mod4" # Super Key
 mod1 = "mod1" # Alt Key
 
 keys = [
+	# Launch Applications
+    Key([mod],"e", lazy.spawn("nemo"), desc="Nemo"),
+    Key([mod],"w", lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher')), desc="Rofi (Start Menu)"),
+    Key([mod],"x", lazy.spawn("geany"), desc="Geany (Text editor)"),
+    Key([mod],"a", lazy.spawn("chromium"), desc="Chromium"),
+    Key([mod],"s", lazy.function(show_power_menu), desc="Power Menu"),
+    Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Terminal"),
+    Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Screenshot"),
+    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP"), desc="Connect PureVPN"),
+    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
+
+	# Qtile commands
+    Key([mod, mod1], "r", lazy.restart(), desc="Restart Qtile"),
+    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
+    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile and logout"),
+    
+    #Toggle between different group and layouts as defined below
+    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "quoteleft", lazy.function(_scroll_screen(1)), desc="Screen groups forward"),
+    
     # Switch between windows
     Key([mod, mod1], "Left", lazy.layout.left(), desc="Move focus to left"),
     Key([mod, mod1], "Right", lazy.layout.right(), desc="Move focus to right"),
     Key([mod, mod1], "Down", lazy.layout.down(), desc="Move focus down"),
     Key([mod, mod1], "Up", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
-    Key([mod1], "Tab", lazy.layout.next(), desc="Move window focus to other window"),
-
+    Key([mod], "space", lazy.layout.next(), desc="Move focus to next window"),
+    Key([mod1], "Tab", lazy.layout.next(), desc="Move focus to next window"),
     
     # Move windows between left/right columns or move up/down in current stack.
     Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
@@ -253,7 +272,7 @@ keys = [
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     #Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
-    Key([mod], "d", lazy.spawn("killall dunst"), lazy.spawn("notify-send \"this is a sfaskjhfasjhfkajhsfkajhsfkajhsfkjaksfjaksjgfkajgsflasf kjagslkjfgaklsjgfkajsgfkjasgfkjhagskjlfgakjlsgflkaj fasfasfasfasfasfasfasfasftitle\"")),
+    #Key([mod], "d", lazy.spawn("killall dunst"), lazy.spawn("notify-send \"this is a sfaskjhfasjhfkajhsfkajhsfkajhsfkjaksfjaksjgfkajgsflasf kjagslkjfgaklsjgfkajsgfkjasgfkjhagskjlfgakjlsgflkaj fasfasfasfasfasfasfasfasftitle\"")),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -265,51 +284,30 @@ keys = [
     #    desc="Toggle between split and unsplit sides of stack",
     #),
     
-    # Move window to next screen
+    # Manipulate windows on and between screens
     Key([mod], "Right", lazy.function(window_to_next_screen, switch_screen=True),desc="Move window to right screen"),
     Key([mod], "Left", lazy.function(window_to_previous_screen, switch_screen=True), desc="Move window to left screen"),
-
-	# Toggle minimization/fullscreen/kill of windows
     Key([mod],"c", minimize_all(), desc="Toggle minimization of all window"),
     Key([mod],"f", lazy.window.toggle_fullscreen(), desc="Make window fullscreen"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
-
-    # Toggle between different group and layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
-    Key([mod], "quoteleft", lazy.function(_scroll_screen(1)), desc="Screen groups forward"),
-
-	# Launch Applications
-    Key([mod],"e", lazy.spawn("nemo"), desc="Launch Nemo"),
-    Key([mod],"w", lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher')), desc="Launch Rofi"),
-    Key([mod],"x", lazy.spawn("geany"), desc="Launch Geany editor"),
-    Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
-    Key([mod],"s", lazy.function(show_power_menu), desc="Power Menu"),
-    Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch Terminal"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
-    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP"), desc="Connect PureVPN"),
-    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
-
-	# Qtile commands
-    Key([mod, mod1], "r", lazy.restart(), desc="Restart Qtile"),
-    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
-    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile and logout"),
 ]
 
 groups = [
-    Group("1", label=""),
-    Group("2", label=""),
-    Group("3", label=""), 
-    Group("4", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
-    Group("5", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
-    Group("6", label=""),
+    #Group("1", label="綠⏾ﲮﲭﲮ"),
+    Group("1", label=""),
+    Group("2", label=""),
+    Group("3", label=""), 
+    Group("4", label="ﲭ"),
+    Group("5", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
+    Group("6", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
     Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "columns"),
     Group("8", label="", matches=[Match(wm_class=["evolution","thunderbird"])],layout = "max"),
-    Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
+    Group("9", label="", matches=[Match(wm_class=["Steam"])],layout = "max"),
 ]
 
 for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name)), desc="Switch to group {}".format(i.name)))
+for i in groups:
     keys.append(Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name)))
 
 # General Decoration setting
@@ -318,48 +316,30 @@ decor_general = {
         RectDecoration(
             #colour="#a6e3a1",
             use_widget_background=True,
-            line_width= 0,
+            line_width= 1,
+            line_colour=colors[17],
             radius=[15, 15, 15, 15],
             filled=True,
             margin_y=20,
             padding_y=8,
             padding_x=0,
             group=True,
-            clip=False,
-        ),
-        RectDecoration(
-            colour=colors[17],
-            #use_widget_background=True,
-            line_width= 1,
-            radius=[15, 15, 15, 15],
-            filled=False,
-            padding_y=8,
-            padding_x=0,
             clip=True,
-            group=True,
-        ), 
+        ),
     ],
 }
+
 
 # Decoration setting for no grouping Rect.Decoraction
 decor_nogroup = {
     "decorations": [
         RectDecoration(
-            #colour=colors[1],
+            #colour=colors[7],
             use_widget_background=True,
-            line_width= 0,
+            line_width= 1,
+            line_colour=colors[17],
             radius=[15, 15, 15, 15],
             filled=True,
-            padding_y=6,
-            padding_x=0,
-            group=False,
-        ), 
-        RectDecoration(
-            colour=colors[17],
-            #use_widget_background=True,
-            line_width= 1,
-            radius=[15, 15, 15, 15],
-            filled=False,
             padding_y=6,
             padding_x=0,
             group=False,
@@ -371,23 +351,17 @@ decor_nogroup = {
 decor_side = {
     "decorations": [
         RectDecoration(
-            colour=colors[1],
-            line_width=0,
+            colour=colors[7],
+            line_width=1,
+            line_colour=colors[17],
             radius=[15, 15, 15, 15],
             filled=True,
             padding_y=7,
             padding_x=0,
             group=False,
-        )
+        ),
     ],
 }
-
-widget_defaults = dict(
-    font="monospace",
-    fontsize=30,
-    padding=8,
-)
-extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
@@ -401,7 +375,7 @@ screens = [
                        mouse_callbacks={"Button1": lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher_icon'))},
                        #**decor_nogroup
                 ),
-                widget.Spacer(length=5),  
+                widget.Spacer(length=12),  
                 widget.CurrentLayoutIcon(
                        scale = 0.66, 
                        custom_icon_paths = ["~/.config/qtile/assets/layout"],
@@ -420,17 +394,16 @@ screens = [
            #                           ], 
            #             padding = 15, padding_y = -2, icon_size=40,**decor_nogroup
            #     ),
-                #widget.Spacer(length=8),
-                widget.Spacer(length=5),
+                widget.Spacer(length=12),
                 widget.GroupBox(
-                       #font="Symbols Nerd Font Mono",
+                       font="Symbols Nerd Font Mono",
                        fontsize = 35,
                        spacing = 5,
                        margin_y = 3,
                        margin_x = 15,
                        padding_x=5,
                        padding_y = 4,
-                       background=colors[1],
+                       background=colors[7],
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
@@ -447,10 +420,12 @@ screens = [
                 widget.Spacer(length=5),
                 widget.Prompt(),
                 widget.Chord(
-                      chords_colors={
-                      "launch": ("#ff0000", "#ffffff"),
-                       },
-                       name_transform=lambda name: name.upper(),
+                    chords_colors={
+                    "launch": ("#ff0000", "#ffffff"),
+                    },
+                    name_transform=lambda name: name.upper(),
+                    font="monospace",
+                    fontsize = 36,
                 ),  
                 widget.Spacer(length=5),
                 widget.TaskList(
@@ -468,55 +443,76 @@ screens = [
                        fontsize = 20,
                        txt_floating="🗗",
                        txt_maximized="🗖",
-                       txt_minimized="_",
+                       txt_minimized="🗕",
                        theme_path="/usr/share/icons/Papirus-Dark",
                        theme_mode="preferred",
                 ),
                 widget.Spacer(),
-                widget.WindowName(fontsize=24, empty_group_string="",foreground=colors[0]),
+                widget.WindowName(fontsize=24, padding=00, empty_group_string="", foreground=colors[5]),
                 widget.Spacer(),
+                widget.CheckUpdates(
+                       font="Symbols Nerd Font Mono",
+                       fontsize = 26,
+                       custom_command = "checkupdates",
+                       update_interval = 86400,
+                       display_format = "   {updates} ",
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
+                       no_update_string='',
+                       colour_have_updates = colors[16],
+                       background = colors[7],
+                       **decor_general
+                ),
+                widget.Spacer(length=10),
                 widget.NvidiaSensors(
-                    format=':{temp}°C', 
-                    fontsize=24, 
+                    font="Symbols Nerd Font Mono",
+                    format=' {temp}°C', 
+                    fontsize=24,
+                    padding=10, 
                     foreground=colors[13], 
-                    background=colors[1],
+                    background=colors[7],
                     update_interval=5, 
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c watch -n2 nvidia-smi\"")}, 
                     **decor_general
                     ),
                 widget.CPU(
-                    format=":{load_percent:2.0f}%", 
-                    fontsize=24, 
+                    font="Symbols Nerd Font Mono",
+                    #font="FontAwesome",
+                    format="{load_percent:3.0f}%", 
+                    fontsize=24,
+                    padding=10,  
                     foreground=colors[12],
-                    background=colors[1],
-                    update_interval=5,
+                    background=colors[7],
+                    update_interval=10,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
                 widget.Memory(
                     font="Symbols Nerd Font Mono",
-                    format="﬙ﭷ:{MemUsed:2.0f}{mm}", 
+                    format=" {MemUsed:2.0f}{mm}", 
                     measure_mem='G', 
-                    fontsize=24, 
+                    fontsize=24,
+                    padding=10,  
                     foreground=colors[11], 
-                    background=colors[1], 
+                    background=colors[7], 
                     update_interval=5,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
                 widget.Spacer(length=10),
                 widget.Clock( 
+                       font="Symbols Nerd Font Mono",
                        padding = 10,
                        foreground = colors[10],
-                       background=colors[1],
+                       background=colors[7],
                        fontsize = 24,
-                       format=" %H:%M",
+                       format="  %H:%M",
                        **decor_general, 
                 ),
                 widget.Clock( 
+                       font="Symbols Nerd Font Mono",
                        padding = 10,
                        foreground = colors[14],
-                       background=colors[1],
+                       background=colors[7],
                        fontsize = 24,
-                       format=" %a-%d",
+                       format="  %a-%d",
                        **decor_general,
                 ),
                 widget.Spacer(length=10),
@@ -531,9 +527,9 @@ screens = [
                        bar_colour_high=colors[10],
                        bar_colour_loud=colors[15],
                        bar_colour_normal=colors[13],
-                       bar_colour_mute=colors[1],
+                       bar_colour_mute=colors[7],
                        foreground=colors[5],
-                       background=colors[1],
+                       background=colors[7],
                        update_interval=5,
                        hide_interval=2,
                        **decor_general,
@@ -545,9 +541,9 @@ screens = [
                        hide_after=5,
                        menu_width=370,
                        show_menu_icons=True,
-                       background=colors[1],
+                       background=colors[7],
                        highlight_colour=colors[3],
-                       menu_background=colors[1],
+                       menu_background=colors[7],
                        menu_foreground=colors[0],
                        menu_foreground_disabled=colors[2],
                        menu_icon_size=16,
@@ -562,35 +558,25 @@ screens = [
                        **decor_general,
 				),
                 widget.TextBox(
+                       font="Symbols Nerd Font Mono",
                        text="", 
                        fontsize=22, 
                        foreground=colors[15],
-                       background=colors[1],
+                       background=colors[7],
                        padding=-7,
                        **decor_general,
 				),   
                 widget.TextBox(
                        mouse_callbacks={"Button1": lazy.function(show_power_menu), "Button3": lazy.function(show_power_menu)},
-                       font = "FontAwesome", 
+                       font="Symbols Nerd Font Mono",
                        text="", 
                        fontsize=27, 
                        foreground=colors[5],
-                       background=colors[1],
+                       background=colors[7],
                        padding=12,
                        **decor_general,
                 ),
-                widget.CheckUpdates(
-                       font = "FontAwesome",
-                       fontsize = 26,
-                       custom_command = "checkupdates",
-                       update_interval = 86400,
-                       display_format = " {updates}",
-                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
-                       no_update_string='',
-                       colour_have_updates = colors[15],
-                       background = colors[1],
-                       **decor_general
-                ),
+
              #   widget.Spacer(length=1), 
              #   widget.Systray(
              #          background=colors[4],
@@ -602,29 +588,30 @@ screens = [
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ), 
-                       wallpaper="~/.config/qtile/assets/wallhaven-dpqjwj-3440.png",
+                       wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-j37lop.png",
                        wallpaper_mode="fill",
 	),
 
     Screen(
         top=bar.Bar(
             [
-                widget.Spacer(-8), 
-                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = [os.path.expanduser("~/.config/qtile/assets/layout")], foreground=colors[3]), 
+                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
+                widget.Spacer(10), 
                 widget.GroupBox(
-                       font="monospace",
-                       fontsize = 35,
+                       font="Symbols Nerd Font Mono",
+                       fontsize = 31,
                        margin_x = 10,
-                       spacing = 0,
-                       margin_y = 2,
-                       padding = 5,
+                       spacing = 6,
+                       margin_y = 4,
+                       padding_x = 4,
+                       padding_y = 4,
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
                        this_current_screen_border = colors[3],
                        this_screen_border=colors[3],
                        highlight_method='border',
-                       borderwidth = 3,
+                       borderwidth = 2,
                        visible_groups=['4', '5', '6'],
                        **decor_side
                 ),
@@ -649,47 +636,77 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
-                widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_general),
-                widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_general),
-                widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=24, foreground=colors[11], background=colors[1], update_interval=5, **decor_general),
+                widget.NvidiaSensors(
+                    font="Symbols Nerd Font Mono",
+                    format='  {temp}°C', 
+                    fontsize=22,
+                    padding=10, 
+                    foreground=colors[13], 
+                    background=colors[7],
+                    update_interval=5, 
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c watch -n2 nvidia-smi\"")}, 
+                    **decor_general
+                    ),
+                widget.CPU(
+                    font="Symbols Nerd Font Mono",
+                    format=" {load_percent:2.0f}%", 
+                    fontsize=22,
+                    padding=10,  
+                    foreground=colors[12],
+                    background=colors[7],
+                    update_interval=10,
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                    **decor_general),
+                widget.Memory(
+                    font="Symbols Nerd Font Mono",
+                    format=" {MemUsed:2.0f}{mm}", 
+                    measure_mem='G', 
+                    fontsize=22,
+                    padding=10,  
+                    foreground=colors[11], 
+                    background=colors[7], 
+                    update_interval=5,
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                    **decor_general),
                 widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[10],
-                       background=colors[1],
+                       background=colors[7],
                        fontsize = 22,
                        format=" %H:%M",
                        **decor_general, 
                 ),
-                widget.Spacer(length=3), 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),                       
-                       wallpaper="~/.config/qtile/assets/wallhaven-dpqjwj-3440.png",
+                       wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-6k3oox.jpg",
                        wallpaper_mode="fill",
         ),
         
     Screen(
         top=bar.Bar(
             [
-                widget.Spacer(-8), 
-                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = [os.path.expanduser("~/.config/qtile/assets/layout")], foreground=colors[3]), 
+                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
+                widget.Spacer(10), 
                 widget.GroupBox(
-                       font="monospace",
-                       fontsize = 36,
+                       font="Symbols Nerd Font Mono",
+                       #font="FontAwesome",
+                       fontsize = 31,
                        margin_x = 10,
-                       spacing = 0,
+                       spacing = 6,
                        margin_y = 4,
-                       padding = 6,
+                       padding_x = 4,
+                       padding_y = 4,
                        disable_drag = True,
                        active = colors[3],
                        inactive = colors[2],
                        this_current_screen_border = colors[3],
                        this_screen_border=colors[3],
                        highlight_method='border',
-                       borderwidth = 3,
+                       borderwidth = 2,
                        visible_groups=['7', '8', '9'],
                        **decor_side
                 ),
@@ -715,9 +732,10 @@ screens = [
                 ),
                 widget.Spacer(),
                 widget.Net(
+                       font="Symbols Nerd Font Mono",
                        padding=0,
                        foreground = colors[16],
-                       background=colors[1],
+                       background=colors[7],
                        fontsize = 22,
                        prefix ='M',
                        interface='eno2',
@@ -729,7 +747,7 @@ screens = [
                        ),
                 widget.NetGraph(
                        graph_color = colors[16],
-                       background = colors[1],
+                       background = colors[7],
                        border_width=2,
                        interface='eno2',
                        bandwidth_type= "down",
@@ -740,41 +758,40 @@ screens = [
                        **decor_general,
                        ),
                 widget.Spacer(10), 
-                #widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[1],update_interval=5, **decor_general),
-                #widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[1],update_interval=5, **decor_general),
-                #widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[1], update_interval=5, **decor_general),
+                #widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[7],update_interval=5, **decor_general),
+                #widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[7],update_interval=5, **decor_general),
+                #widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[7], update_interval=5, **decor_general),
                 #widget.Spacer(length=10),
                 widget.Clock( 
                        padding = 10,
                        foreground = colors[10],
-                       background=colors[1],
+                       background=colors[7],
                        fontsize = 22,
                        format=" %H:%M",
                        **decor_general, 
                 ),
-                widget.Spacer(length=3,), 
+ 
            ],
         55, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
-                       wallpaper="~/.config/qtile/assets/wallhaven-dpqjwj-3440.png",
-                       wallpaper_mode="fill",
+                       wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-qde11d.jpg",
+                       wallpaper_mode="stretch",
     ),   
 ]
 
 # Layout configuration
-layout_theme = {"border_width": 1,
-                "margin": 4,
+layout_theme = {"margin": 4,
                 "border_focus": colors[2],
                 "border_normal": colors[6]
                 }
 
 layouts = [
-    layout.Columns(border_width= 1, margin = 4, border_focus = colors[2], border_normal = colors[6]),
+    layout.Columns(border_width= 1, **layout_theme),
     # layout.Matrix(**layout_theme),
     #layout.RatioTile(**layout_theme),
-    layout.Max(border_width= 0, margin = 4, border_focus = colors[2], border_normal = colors[6]),
+    layout.Max(border_width= 0, **layout_theme),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
@@ -790,7 +807,7 @@ layouts = [
 mouse = [
     Drag([mod], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
     Drag([mod], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()),
-    #Click([mod], "Button2", lazy.window.bring_to_front()),
+    Click([mod], "Button9", lazy.window.bring_to_front()),
     Click([mod], "Button2", lazy.window.toggle_floating()),
 ]
 
@@ -811,7 +828,6 @@ floating_layout = layout.Floating(
         Match(wm_class="gnome-disks"),  # gnome disk utility
         Match(wm_class="blueman-manager"),  # blueman-applet
         Match(wm_class="conky"),  # conky
-        Match(wm_class="cinnamon-settings screensaver"),  # screensaver
         Match(wm_class="pavucontrol"),  # Pulseaudio mixer and sound sources
         Match(wm_class="virt-manager"), # Virtual Manager
         Match(title="branchdialog"),  # gitk
@@ -840,7 +856,7 @@ wmname = "Qtile"
 @hook.subscribe.client_name_updated
 def spotify(window):
     if window.name == "Spotify":
-        window.togroup(group_name="5")
+        window.togroup(group_name="6")
         
 # Keep floating window always above
 @hook.subscribe.group_window_add
@@ -881,12 +897,12 @@ def assign_groups_to_screens():
 	if len(qtile.screens) != 1:
 		try:
 			qtile.groups_map["1"].toscreen(0)
-			qtile.groups_map["6"].toscreen(1)
-			qtile.groups_map["8"].toscreen(2, toggle=True)
+			qtile.groups_map["4"].toscreen(1)
+			qtile.groups_map["7"].toscreen(2, toggle=True)
 		except IndexError:
 			pass
 
-# Activate VPN. nm-applet needs to be loaded before attempting to connect to VPN. This is the reason of asyncio.sleep()
+# Activate VPN after startup. nm-applet needs to be loaded before attempting to connect to VPN. This is the reason of asyncio.sleep()
 @hook.subscribe.startup_complete
 async def start_vpn():
 	await asyncio.sleep(2)
@@ -934,9 +950,10 @@ async def _screen0(window):
             window.togroup("3")
             qtile.groups_map["3"].toscreen(0)
     elif w_name =="EXAPUNKS":
-        window.togroup("3")
+        window.toscreen(0)
         window.toggle_floating()
-        qtile.groups_map["3"].toscreen(0)
+        #window.togroup("3")
+        #qtile.groups_map["3"].toscreen(0)
     elif ((window.group.screen.index == 2) 
         and (wm_class != ['Mail', 'thunderbird']) 
         and (wm_class != ["Thunderbird", "thunderbird"])
@@ -944,7 +961,8 @@ async def _screen0(window):
         and (wm_class != ['deluge', 'Deluge'])  
         and (wm_class != ['Steam', 'Steam'])
     ):
-        window.togroup("3")
-        qtile.groups_map["3"].toscreen(0)
+        window.toscreen(0)
+        #window.togroup("3")
+        #qtile.groups_map["3"].toscreen(0)
         #window.group.setlayout("max")
 

@@ -11,121 +11,9 @@ from libqtile.widget import Spacer
 
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration, BorderDecoration
-from qtile_extras.popup.toolkit import (
-    PopupRelativeLayout,
-    PopupImage,
-    PopupText
-)
 
-def show_power_menu(qtile):
-    controls = [
-        PopupImage(
-            filename="~/.config/qtile/assets/lock.svg",
-            pos_x=0,
-            pos_y=0.02,
-            width=1.0,
-            height=0.15,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/lock_blur.svg",
-            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')}
-        ),
-        PopupText(
-            text="Lock",
-            font='monospace Bold',
-            fontsize=18,
-            pos_x=0,
-            pos_y=0.17,
-            width=1,
-            height=0.075,
-            foreground=colors[15],
-            h_align="center",
-            can_focus=False,
-            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')}
-        ),
-        PopupImage(
-            filename="~/.config/qtile/assets/logout.svg",
-            pos_x=0.0,
-            pos_y=0.27,
-            width=1.0,
-            height=0.15,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/logout_blur.svg",
-            mouse_callbacks={"Button1": lazy.shutdown()}
-        ),
-        PopupText(
-            text="Logout",
-            font='monospace Bold',
-            fontsize=18,
-            pos_x=0.0,
-            pos_y=0.42,
-            width=1.0,
-            height=0.075,
-            foreground=colors[10],
-            h_align="center",
-            can_focus=False,
-            mouse_callbacks={"Button1": lazy.shutdown()}
-        ),
-        PopupImage(
-            filename="~/.config/qtile/assets/restart.svg",
-            pos_x=0.0,
-            pos_y=0.52,
-            width=1.0,
-            height=0.15,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/restart_blur.svg",
-            mouse_callbacks={"Button1": lazy.spawn("systemctl reboot")}
-        ),
-        PopupText(
-            text="Restart",
-            font='monospace Bold',
-            fontsize=18,
-            pos_x=0,
-            pos_y=0.67,
-            width=1,
-            height=0.075,
-            foreground=colors[12],
-            h_align="center",
-            can_focus=False,
-            mouse_callbacks={"Button1": lazy.spawn("systemctl reboot")}
-        ),
-        PopupImage(
-            filename="~/.config/qtile/assets/shutdown.svg",
-            pos_x=0,
-            pos_y=0.77,
-            width=1.0,
-            height=0.15,
-            highlight_method='image',
-            highlight_filename="~/.config/qtile/assets/shutdown_blur.svg",
-            mouse_callbacks={"Button1": lazy.spawn("systemctl poweroff")}
-        ),
-        PopupText(
-            text="Shutdown",
-            font='monospace Bold',
-            fontsize=18,
-            pos_x=0,
-            pos_y=0.92,
-            width=1,
-            height=0.075,
-            foreground=colors[13],
-            h_align="center",
-            can_focus=False,
-            mouse_callbacks={"Button1": lazy.spawn("systemctl poweroff")}
-        ),
-    ]
-
-    layout = PopupRelativeLayout(
-        qtile,
-        width=100,
-        height=350,
-        border_width=1,
-        border=colors[17],
-        controls=controls,
-        background=colors[7],
-        initial_focus=None,
-        hide_interval=0.7,
-        hide_on_mouse_leave=True
-    )
-    layout.show(x=-6, y=0.003, warp_pointer=False,relative_to=3,relative_to_bar=True)
+from popups import power_menu
+assert power_menu
 
 # Parsing : remove all text.
 def txt_remove(text):
@@ -231,14 +119,33 @@ mod = "mod4" # Super Key
 mod1 = "mod1" # Alt Key
 
 keys = [
+	# Launch Applications
+    Key([mod],"e", lazy.spawn("nemo"), desc="Nemo"),
+    Key([mod],"w", lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher')), desc="Rofi (Start Menu)"),
+    Key([mod],"x", lazy.spawn("geany"), desc="Geany (Text editor)"),
+    Key([mod],"a", lazy.spawn("chromium"), desc="Chromium"),
+    Key([mod],"s", lazy.function(show_power_menu), desc="Power Menu"),
+    Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Terminal"),
+    Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Screenshot"),
+    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP"), desc="Connect PureVPN"),
+    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
+
+	# Qtile commands
+    Key([mod, mod1], "r", lazy.restart(), desc="Restart Qtile"),
+    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
+    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile and logout"),
+    
+    #Toggle between different group and layouts as defined below
+    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "quoteleft", lazy.function(_scroll_screen(1)), desc="Screen groups forward"),
+    
     # Switch between windows
     Key([mod, mod1], "Left", lazy.layout.left(), desc="Move focus to left"),
     Key([mod, mod1], "Right", lazy.layout.right(), desc="Move focus to right"),
     Key([mod, mod1], "Down", lazy.layout.down(), desc="Move focus down"),
     Key([mod, mod1], "Up", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
-    Key([mod1], "Tab", lazy.layout.next(), desc="Move window focus to other window"),
-
+    Key([mod], "space", lazy.layout.next(), desc="Move focus to next window"),
+    Key([mod1], "Tab", lazy.layout.next(), desc="Move focus to next window"),
     
     # Move windows between left/right columns or move up/down in current stack.
     Key([mod, "control"], "Left", lazy.layout.shuffle_left(), desc="Move window to the left"),
@@ -253,7 +160,7 @@ keys = [
     Key([mod, "shift"], "Up", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
     #Key([mod], "d", lazy.function(go_to_group("8")), lazy.screen.toggle_group(group_name="8", warp=True)),
-    Key([mod], "d", lazy.spawn("killall dunst"), lazy.spawn("notify-send \"this is a sfaskjhfasjhfkajhsfkajhsfkajhsfkjaksfjaksjgfkajgsflasf kjagslkjfgaklsjgfkajsgfkjasgfkjhagskjlfgakjlsgflkaj fasfasfasfasfasfasfasfasftitle\"")),
+    #Key([mod], "d", lazy.spawn("killall dunst"), lazy.spawn("notify-send \"this is a sfaskjhfasjhfkajhsfkajhsfkajhsfkjaksfjaksjgfkajgsflasf kjagslkjfgaklsjgfkajsgfkjasgfkjhagskjlfgakjlsgflkaj fasfasfasfasfasfasfasfasftitle\"")),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -265,43 +172,20 @@ keys = [
     #    desc="Toggle between split and unsplit sides of stack",
     #),
     
-    # Move window to next screen
+    # Manipulate windows on and between screens
     Key([mod], "Right", lazy.function(window_to_next_screen, switch_screen=True),desc="Move window to right screen"),
     Key([mod], "Left", lazy.function(window_to_previous_screen, switch_screen=True), desc="Move window to left screen"),
-
-	# Toggle minimization/fullscreen/kill of windows
     Key([mod],"c", minimize_all(), desc="Toggle minimization of all window"),
     Key([mod],"f", lazy.window.toggle_fullscreen(), desc="Make window fullscreen"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
-
-    # Toggle between different group and layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
-    Key([mod], "quoteleft", lazy.function(_scroll_screen(1)), desc="Screen groups forward"),
-
-	# Launch Applications
-    Key([mod],"e", lazy.spawn("nemo"), desc="Launch Nemo"),
-    Key([mod],"w", lazy.spawn(os.path.expanduser('~/.config/qtile/rofi/bin/launcher')), desc="Launch Rofi"),
-    Key([mod],"x", lazy.spawn("geany"), desc="Launch Geany editor"),
-    Key([mod],"a", lazy.spawn("chromium"), desc="Launch Chromium browser"),
-    Key([mod],"s", lazy.function(show_power_menu), desc="Power Menu"),
-    Key([mod], "Return", lazy.spawn("gnome-terminal -e \"bash -c neofetch\";bash"), desc="Launch Terminal"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
-    Key([],"Print", lazy.spawn("gnome-screenshot --interactive"), desc="Launch Screenshot"),
-    Key([mod], "u",lazy.spawn("nmcli con up Nederland-PPTP"), desc="Connect PureVPN"),
-    Key([mod], "i",lazy.spawn("nmcli con down Nederland-PPTP"), desc="Disconnect PureVPN"),
-
-	# Qtile commands
-    Key([mod, mod1], "r", lazy.restart(), desc="Restart Qtile"),
-    Key([mod, "control"], "r", lazy.reload_config(), desc="Reload Qtile config"),
-    Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile and logout"),
 ]
 
 groups = [
-    #Group("1", label="⏾"),
+    #Group("1", label="綠⏾ﲮﲭﲮ"),
     Group("1", label=""),
     Group("2", label=""),
-    Group("3", label=""), 
-    Group("4", label=""),
+    Group("3", label=""), 
+    Group("4", label="ﲭ"),
     Group("5", label="", matches=[Match(wm_class=["discord"])],layout = "max"),
     Group("6", label="", matches=[Match(wm_class=["spotify"])],layout = "max"),
     Group("7", label="", matches=[Match(wm_class=["deluge"])],layout = "columns"),
@@ -311,6 +195,7 @@ groups = [
 
 for i in groups:
     keys.append(Key([mod], i.name, lazy.function(go_to_group(i.name)), desc="Switch to group {}".format(i.name)))
+for i in groups:
     keys.append(Key([mod, "control"], i.name, lazy.window.togroup(i.name, switch_group=True), lazy.function(go_to_group(i.name)), desc="Switch to & move focused window to group {}".format(i.name)))
 
 # General Decoration setting
@@ -319,28 +204,19 @@ decor_general = {
         RectDecoration(
             #colour="#a6e3a1",
             use_widget_background=True,
-            line_width= 0,
+            line_width= 1,
+            line_colour=colors[17],
             radius=[15, 15, 15, 15],
             filled=True,
             margin_y=20,
             padding_y=8,
             padding_x=0,
             group=True,
-            clip=False,
-        ),
-        RectDecoration(
-            colour=colors[17],
-            #use_widget_background=True,
-            line_width= 1,
-            radius=[15, 15, 15, 15],
-            filled=False,
-            padding_y=8,
-            padding_x=0,
             clip=True,
-            group=True,
-        ), 
+        ),
     ],
 }
+
 
 # Decoration setting for no grouping Rect.Decoraction
 decor_nogroup = {
@@ -348,19 +224,10 @@ decor_nogroup = {
         RectDecoration(
             #colour=colors[7],
             use_widget_background=True,
-            line_width= 0,
+            line_width= 1,
+            line_colour=colors[17],
             radius=[15, 15, 15, 15],
             filled=True,
-            padding_y=6,
-            padding_x=0,
-            group=False,
-        ), 
-        RectDecoration(
-            colour=colors[17],
-            #use_widget_background=True,
-            line_width= 1,
-            radius=[15, 15, 15, 15],
-            filled=False,
             padding_y=6,
             padding_x=0,
             group=False,
@@ -373,23 +240,14 @@ decor_side = {
     "decorations": [
         RectDecoration(
             colour=colors[7],
-            line_width=0,
+            line_width=1,
+            line_colour=colors[17],
             radius=[15, 15, 15, 15],
             filled=True,
             padding_y=7,
             padding_x=0,
             group=False,
         ),
-        RectDecoration(
-            colour=colors[17],
-            #use_widget_background=True,
-            line_width= 1,
-            radius=[15, 15, 15, 15],
-            filled=False,
-            padding_y=6,
-            padding_x=0,
-            group=False,
-        ), 
     ],
 }
 
@@ -450,10 +308,12 @@ screens = [
                 widget.Spacer(length=5),
                 widget.Prompt(),
                 widget.Chord(
-                      chords_colors={
-                      "launch": ("#ff0000", "#ffffff"),
-                       },
-                       name_transform=lambda name: name.upper(),
+                    chords_colors={
+                    "launch": ("#ff0000", "#ffffff"),
+                    },
+                    name_transform=lambda name: name.upper(),
+                    font="monospace",
+                    fontsize = 36,
                 ),  
                 widget.Spacer(length=5),
                 widget.TaskList(
@@ -483,7 +343,7 @@ screens = [
                        fontsize = 26,
                        custom_command = "checkupdates",
                        update_interval = 86400,
-                       display_format = "  {updates}",
+                       display_format = "   {updates} ",
                        mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
                        no_update_string='',
                        colour_have_updates = colors[16],
@@ -493,7 +353,7 @@ screens = [
                 widget.Spacer(length=10),
                 widget.NvidiaSensors(
                     font="Symbols Nerd Font Mono",
-                    format='  {temp}°C', 
+                    format=' {temp}°C', 
                     fontsize=24,
                     padding=10, 
                     foreground=colors[13], 
@@ -505,7 +365,7 @@ screens = [
                 widget.CPU(
                     font="Symbols Nerd Font Mono",
                     #font="FontAwesome",
-                    format="{load_percent:2.0f}%", 
+                    format="{load_percent:3.0f}%", 
                     fontsize=24,
                     padding=10,  
                     foreground=colors[12],
@@ -835,7 +695,7 @@ layouts = [
 mouse = [
     Drag([mod], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
     Drag([mod], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size()),
-    #Click([mod], "Button2", lazy.window.bring_to_front()),
+    Click([mod], "Button9", lazy.window.bring_to_front()),
     Click([mod], "Button2", lazy.window.toggle_floating()),
 ]
 
@@ -899,7 +759,7 @@ def window_added(group, window):
 # Autostart
 @hook.subscribe.startup_once
 def autostart():
-    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    home = os.path.expanduser('~/.config/qtile/settings/autostart.sh')
     subprocess.Popen([home])
 
 # Pass every Steam window that is not the main one in floating mode
