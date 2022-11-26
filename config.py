@@ -12,8 +12,7 @@ from libqtile.widget import Spacer
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration, BorderDecoration
 
-from popups import power_menu
-assert power_menu
+from popups.power_menu import show_power_menu
 
 # Parsing : remove all text.
 def txt_remove(text):
@@ -209,14 +208,13 @@ decor_general = {
             radius=[15, 15, 15, 15],
             filled=True,
             margin_y=20,
-            padding_y=8,
+            padding_y=6,
             padding_x=0,
             group=True,
             clip=True,
         ),
     ],
 }
-
 
 # Decoration setting for no grouping Rect.Decoraction
 decor_nogroup = {
@@ -251,6 +249,25 @@ decor_side = {
     ],
 }
 
+box_main = {
+            "font": 'Symbols Nerd Font Mono',
+            "fontsize": 35,
+            "spacing": 5,
+            "margin_y": 3,
+            "margin_x": 15,
+            "padding_x": 5,
+            "padding_y": 4,
+            "background": colors[7],
+            "disable_drag": True,
+            "active": colors[3],
+            "inactive": colors[2],
+            "highlight_method":'border',
+            "this_current_screen_border": colors[3],
+            "other_current_screen_border": colors[0],
+            "this_screen_border": colors[3],
+            "borderwidth": 2,
+            }
+
 screens = [
     Screen(
         top=bar.Bar(
@@ -284,27 +301,10 @@ screens = [
            #     ),
                 widget.Spacer(length=12),
                 widget.GroupBox(
-                       font="Symbols Nerd Font Mono",
-                       fontsize = 35,
-                       spacing = 5,
-                       margin_y = 3,
-                       margin_x = 15,
-                       padding_x=5,
-                       padding_y = 4,
-                       background=colors[7],
-                       disable_drag = True,
-                       active = colors[3],
-                       inactive = colors[2],
-                       highlight_method='border',
-                       this_current_screen_border = colors[3],
-                       other_current_screen_border=colors[0],
-                       this_screen_border=colors[3],
-                       urgent_border=colors[3],
-                       urgent_text=colors[3],
-                       borderwidth = 2,
-                       visible_groups=['1', '2', '3'],
-                       **decor_nogroup
-                ),
+                    visible_groups=['1', '2', '3'], 
+                    **box_main, 
+                    **decor_nogroup
+                    ),
                 widget.Spacer(length=5),
                 widget.Prompt(),
                 widget.Chord(
@@ -354,7 +354,7 @@ screens = [
                 widget.NvidiaSensors(
                     font="Symbols Nerd Font Mono",
                     format=' {temp}°C', 
-                    fontsize=24,
+                    fontsize=26,
                     padding=10, 
                     foreground=colors[13], 
                     background=colors[7],
@@ -366,7 +366,7 @@ screens = [
                     font="Symbols Nerd Font Mono",
                     #font="FontAwesome",
                     format="{load_percent:3.0f}%", 
-                    fontsize=24,
+                    fontsize=26,
                     padding=10,  
                     foreground=colors[12],
                     background=colors[7],
@@ -377,7 +377,7 @@ screens = [
                     font="Symbols Nerd Font Mono",
                     format=" {MemUsed:2.0f}{mm}", 
                     measure_mem='G', 
-                    fontsize=24,
+                    fontsize=26,
                     padding=10,  
                     foreground=colors[11], 
                     background=colors[7], 
@@ -390,7 +390,7 @@ screens = [
                        padding = 10,
                        foreground = colors[10],
                        background=colors[7],
-                       fontsize = 24,
+                       fontsize = 26,
                        format="  %H:%M",
                        **decor_general, 
                 ),
@@ -399,7 +399,7 @@ screens = [
                        padding = 10,
                        foreground = colors[14],
                        background=colors[7],
-                       fontsize = 24,
+                       fontsize = 26,
                        format="  %a-%d",
                        **decor_general,
                 ),
@@ -408,7 +408,7 @@ screens = [
                        mouse_callbacks={"Button3": lazy.spawn("pavucontrol")},
                        mode='both',
                        theme_path="/usr/share/icons/Papirus-Dark",
-                       icon_size=34,
+                       icon_size=36,
                        fontsize=20,
                        padding=5,
                        bar_width=60,
@@ -423,7 +423,7 @@ screens = [
                        **decor_general,
                        ),
                 widget.StatusNotifier(
-                       icon_size=34,
+                       icon_size=36,
                        icon_theme="/usr/share/icons/Papirus-Dark",
                        padding = 5,
                        hide_after=5,
@@ -444,21 +444,21 @@ screens = [
                        menu_offset_x=2,
                        menu_offset_y=6,
                        **decor_general,
-				),
+                ),
                 widget.TextBox(
                        font="Symbols Nerd Font Mono",
                        text="", 
-                       fontsize=22, 
+                       fontsize=24, 
                        foreground=colors[15],
                        background=colors[7],
                        padding=-7,
                        **decor_general,
-				),   
+                ),   
                 widget.TextBox(
                        mouse_callbacks={"Button1": lazy.function(show_power_menu), "Button3": lazy.function(show_power_menu)},
                        font="Symbols Nerd Font Mono",
                        text="", 
-                       fontsize=27, 
+                       fontsize=29, 
                        foreground=colors[5],
                        background=colors[7],
                        padding=12,
@@ -472,13 +472,13 @@ screens = [
               #         padding = 10,
              #   ),
            ],
-        60, background=colors[4], margin = [2,4,0,0], opacity=1,
+        64, background=colors[4], margin = [2,4,0,0], opacity=1,
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ), 
                        wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-j37lop.png",
                        wallpaper_mode="fill",
-	),
+    ),
 
     Screen(
         top=bar.Bar(
@@ -840,6 +840,7 @@ async def _screen0(window):
     elif w_name =="EXAPUNKS":
         window.toscreen(0)
         window.toggle_floating()
+        #window.disable_fullscreen()
         #window.togroup("3")
         #qtile.groups_map["3"].toscreen(0)
     elif ((window.group.screen.index == 2) 
