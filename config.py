@@ -103,7 +103,10 @@ def init_colors():
             ["#eba0ac", "#eba0ac"], # color 14 Maroon (Reddish/pink)
             ["#f38ba8", "#f38ba8"], # color 15 Red
             ["#89dceb", "#89dceb"], # color 16 Sky (Blue)
-            ["#585b70"], # color 17 Surface 2 (grey)
+            ["#585b70", "#585b70"], # color 17 Surface 2 (grey)
+            ["#74c7ec", "#74c7ec"], # color 18 Sapphire
+            ["#89b4fa", "#89b4fa"], # color 19 Blue
+            ["#b4befe", "#b4befe"], # color 20 Lavender
            ] 
 colors = init_colors()
 
@@ -180,7 +183,7 @@ keys = [
 ]
 
 groups = [
-    #Group("1", label="綠⏾ﲮﲭﲮ"),
+    #Group("1", label="綠⏾ﲮﲭﲮ⏻"),
     Group("1", label=""),
     Group("2", label=""),
     Group("3", label=""), 
@@ -253,18 +256,19 @@ box_main = {
             "font": 'Symbols Nerd Font Mono',
             "fontsize": 35,
             "spacing": 5,
-            "margin_y": 3,
+            "margin_y": 2,
             "margin_x": 15,
             "padding_x": 5,
-            "padding_y": 4,
+            "padding_y": 9,
             "background": colors[7],
             "disable_drag": True,
             "active": colors[3],
             "inactive": colors[2],
-            "highlight_method":'border',
+            "highlight_method":'line',
             "this_current_screen_border": colors[3],
-            "other_current_screen_border": colors[0],
+            "other_current_screen_border": colors[4],
             "this_screen_border": colors[3],
+            "highlight_color": colors[4],
             "borderwidth": 2,
             }
 
@@ -341,21 +345,25 @@ screens = [
                 widget.CheckUpdates(
                        font="Symbols Nerd Font Mono",
                        fontsize = 26,
+                       padding=0,  
                        custom_command = "checkupdates",
-                       update_interval = 86400,
+                       update_interval = 3600,
                        display_format = "   {updates} ",
-                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
-                       no_update_string='',
-                       colour_have_updates = colors[16],
+                       #mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c paru\";bash")},
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'paru; checkupdates; bash'")},
+                       #no_update_string="    0 ",
+                       no_update_string="",
+                       colour_have_updates = colors[18],
+                       colour_no_updates=colors[18],
                        background = colors[7],
                        **decor_general
                 ),
                 widget.Spacer(length=10),
                 widget.NvidiaSensors(
                     font="Symbols Nerd Font Mono",
-                    format=' {temp}°C', 
+                    format='  {temp}°C', 
                     fontsize=26,
-                    padding=10, 
+                    padding=5, 
                     foreground=colors[13], 
                     background=colors[7],
                     update_interval=5, 
@@ -365,9 +373,9 @@ screens = [
                 widget.CPU(
                     font="Symbols Nerd Font Mono",
                     #font="FontAwesome",
-                    format="{load_percent:3.0f}%", 
+                    format="{load_percent:3.0f}%", 
                     fontsize=26,
-                    padding=10,  
+                    padding=5,  
                     foreground=colors[12],
                     background=colors[7],
                     update_interval=10,
@@ -375,23 +383,43 @@ screens = [
                     **decor_general),
                 widget.Memory(
                     font="Symbols Nerd Font Mono",
-                    format=" {MemUsed:2.0f}{mm}", 
+                    format=" {MemUsed:2.0f}{mm} ", 
                     measure_mem='G', 
                     fontsize=26,
-                    padding=10,  
+                    padding=5,  
                     foreground=colors[11], 
                     background=colors[7], 
                     update_interval=5,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
                 widget.Spacer(length=10),
+                widget.AnalogueClock(
+                    margin=18,
+                    padding=10,
+                    hour_size= 2,
+                    hour_length=0.55,
+                    minute_size= 2,
+                    minute_length=0.55,
+                    background=colors[7], 
+                    hour_colour=colors[10],
+                    minute_colour=colors[10],
+                    face_border_colour=colors[10],
+                    face_shape='circle',
+                    face_border_width=3,
+                    update_interval=1,
+                    adjust_y=2,
+                    adjust_x=0,
+                    **decor_general, 
+                ),
+                #widget.Spacer(length=10),
                 widget.Clock( 
                        font="Symbols Nerd Font Mono",
-                       padding = 10,
+                       padding = 0,
                        foreground = colors[10],
                        background=colors[7],
                        fontsize = 26,
-                       format="  %H:%M",
+                       #format="  %H:%M",
+                       format="%H:%M",
                        **decor_general, 
                 ),
                 widget.Clock( 
@@ -457,8 +485,8 @@ screens = [
                 widget.TextBox(
                        mouse_callbacks={"Button1": lazy.function(show_power_menu), "Button3": lazy.function(show_power_menu)},
                        font="Symbols Nerd Font Mono",
-                       text="", 
-                       fontsize=29, 
+                       text="", 
+                       fontsize=26, 
                        foreground=colors[5],
                        background=colors[7],
                        padding=12,
@@ -628,8 +656,8 @@ screens = [
                        prefix ='M',
                        interface='eno2',
                        use_bits=False,
-                       #format=" {up:4.1f}{up_suffix:<2} {down:4.1f}{down_suffix:<2}",
-                       format=" {up} {down}",
+                       format=" {up:4.1f}{up_suffix:<2} {down:4.1f}{down_suffix:<2}",
+                       #format=" {up} {down}",
                        update_interval=5,
                        **decor_general,
                        ),

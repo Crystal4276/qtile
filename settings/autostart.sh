@@ -13,6 +13,7 @@ picom --config $HOME/.config/qtile/settings/picom.conf -b
 blueman-applet &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 openrazer-daemon &
+udiskie --appindicator &
 #run variety &
 #pamac-tray &
 #nitrogen --restore &

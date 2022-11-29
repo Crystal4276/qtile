@@ -133,7 +133,7 @@ def show_power_menu(qtile):
         border_width=1,
         border=colors[17],
         controls=controls,
-        background=colors[7],
+        background=colors[9],
         initial_focus=None,
         hide_interval=0.7,
         hide_on_mouse_leave=True
