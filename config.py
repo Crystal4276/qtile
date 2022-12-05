@@ -11,8 +11,14 @@ from libqtile.widget import Spacer
 
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration, BorderDecoration
+from qtile_extras.widget import modify
 
 from popups.power_menu import show_power_menu
+from widgets.svglayout import svgLayoutIcon
+from widgets.padgroupbox import padGroupBox
+from widgets.FormatNet import FormatNet
+
+
 
 # Parsing : remove all text.
 def txt_remove(text):
@@ -34,16 +40,16 @@ def window_to_previous_screen(qtile, switch_group=False, switch_screen=False):
 
 def window_to_next_screen(qtile, switch_group=False, switch_screen=False):
     i = qtile.screens.index(qtile.current_screen)
-    if i == 0:
-        group = qtile.screens[i + 2].group.name
-        qtile.current_window.togroup(group, switch_group=switch_group)
-        if switch_screen == True:
-            qtile.to_screen(i + 2)
     if i == 1:
         group = qtile.screens[i - 1].group.name
         qtile.current_window.togroup(group, switch_group=switch_group)
         if switch_screen == True:
             qtile.to_screen(i - 1)
+    if i == 0:
+        group = qtile.screens[i + 2].group.name
+        qtile.current_window.togroup(group, switch_group=switch_group)
+        if switch_screen == True:
+            qtile.to_screen(i + 2)
 
 # Key bindings for group stick to screen
 def go_to_group(name: str) -> callable:
@@ -259,7 +265,6 @@ box_main = {
             "margin_y": 2,
             "margin_x": 15,
             "padding_x": 5,
-            "padding_y": 9,
             "background": colors[7],
             "disable_drag": True,
             "active": colors[3],
@@ -273,6 +278,7 @@ box_main = {
             }
 
 screens = [
+            
     Screen(
         top=bar.Bar(
             [
@@ -285,7 +291,7 @@ screens = [
                        #**decor_nogroup
                 ),
                 widget.Spacer(length=12),  
-                widget.CurrentLayoutIcon(
+                svgLayoutIcon(
                        scale = 0.66, 
                        custom_icon_paths = ["~/.config/qtile/assets/layout"],
                        #use_mask = True, 
@@ -304,8 +310,9 @@ screens = [
            #             padding = 15, padding_y = -2, icon_size=40,**decor_nogroup
            #     ),
                 widget.Spacer(length=12),
-                widget.GroupBox(
-                    visible_groups=['1', '2', '3'], 
+                modify(padGroupBox,
+                    visible_groups=['1', '2', '3'],
+                    padding_y= 9, 
                     **box_main, 
                     **decor_nogroup
                     ),
@@ -359,21 +366,49 @@ screens = [
                        **decor_general
                 ),
                 widget.Spacer(length=10),
+                widget.Image(
+                       filename="~/.config/qtile/assets/bar_icons/gpu.svg",
+                       background = colors[7],
+                       colour= colors[13],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'watch -n2 nvidia-smi\'")},  
+                       mask=True,
+                       padding = 10, 
+                       margin_y = 18, 
+                       adjust_y=0,
+                       adjust_x=5,
+                       **decor_general
+                ),
                 widget.NvidiaSensors(
                     font="Symbols Nerd Font Mono",
-                    format='  {temp}°C', 
+                    #font="monospace",
+                    #format='  {temp}°C', 
+                    format='{temp}°C', 
                     fontsize=26,
-                    padding=5, 
+                    padding=0, 
                     foreground=colors[13], 
                     background=colors[7],
                     update_interval=5, 
-                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c watch -n2 nvidia-smi\"")}, 
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'watch -n2 nvidia-smi\'")}, 
                     **decor_general
                     ),
+                widget.Image(
+                       filename="~/.config/qtile/assets/bar_icons/cpu.svg",
+                       background = colors[7],
+                       colour= colors[12],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                       mask=True,
+                       margin_y = 18,
+                       padding = 5, 
+                       adjust_x= 5,
+                       adjust_y=2, 
+                       **decor_general
+                ),
                 widget.CPU(
-                    font="Symbols Nerd Font Mono",
+                    #font="Symbols Nerd Font Mono",
                     #font="FontAwesome",
-                    format="{load_percent:3.0f}%", 
+                    font="monospace",
+                    #format="{load_percent:3.0f}%", 
+                    format="{load_percent:2.0f}%", 
                     fontsize=26,
                     padding=5,  
                     foreground=colors[12],
@@ -381,17 +416,32 @@ screens = [
                     update_interval=10,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
+                widget.Image(
+                       filename="~/.config/qtile/assets/bar_icons/memory.svg",
+                       background = colors[7],
+                       colour= colors[11],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                       mask=True,
+                       padding=5,
+                       margin_y = 18, 
+                       adjust_x=2, 
+                       adjust_y=2, 
+                       **decor_general
+                ),
                 widget.Memory(
                     font="Symbols Nerd Font Mono",
-                    format=" {MemUsed:2.0f}{mm} ", 
+                    #font="monospace",
+                    format="{MemUsed:2.0f}{mm}", 
+                    #format=" {MemUsed:2.0f}{mm} ", 
                     measure_mem='G', 
                     fontsize=26,
-                    padding=5,  
+                    padding=0,  
                     foreground=colors[11], 
                     background=colors[7], 
                     update_interval=5,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
+                widget.Spacer(length=12,background = colors[7],**decor_general),
                 widget.Spacer(length=10),
                 widget.AnalogueClock(
                     margin=18,
@@ -408,7 +458,7 @@ screens = [
                     face_border_width=3,
                     update_interval=1,
                     adjust_y=2,
-                    adjust_x=0,
+                    adjust_x=2,
                     **decor_general, 
                 ),
                 #widget.Spacer(length=10),
@@ -435,10 +485,12 @@ screens = [
                 widget.ALSAWidget(
                        mouse_callbacks={"Button3": lazy.spawn("pavucontrol")},
                        mode='both',
-                       theme_path="/usr/share/icons/Papirus-Dark",
-                       icon_size=36,
+                       #theme_path="/usr/share/icons/Papirus-Dark",
+                       #theme_path="/usr/share/icons/kora",
+                       theme_path="/home/crystal/.config/qtile/assets/bar_icons",
+                       icon_size=28,
                        fontsize=20,
-                       padding=5,
+                       padding=10,
                        bar_width=60,
                        bar_colour_high=colors[10],
                        bar_colour_loud=colors[15],
@@ -507,40 +559,30 @@ screens = [
                        wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-j37lop.png",
                        wallpaper_mode="fill",
     ),
-
-    Screen(
+   
+       
+       
+       Screen(
         top=bar.Bar(
             [
-                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
-                widget.Spacer(10), 
-                widget.GroupBox(
-                       font="Symbols Nerd Font Mono",
-                       fontsize = 31,
-                       margin_x = 10,
-                       spacing = 6,
-                       margin_y = 4,
-                       padding_x = 4,
-                       padding_y = 4,
-                       disable_drag = True,
-                       active = colors[3],
-                       inactive = colors[2],
-                       this_current_screen_border = colors[3],
-                       this_screen_border=colors[3],
-                       highlight_method='border',
-                       borderwidth = 2,
-                       visible_groups=['4', '5', '6'],
-                       **decor_side
-                ),
+                svgLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
+                widget.Spacer(10),
+                modify(padGroupBox,
+                    visible_groups=['4', '5', '6'],
+                    padding_y= 11, 
+                    **box_main, 
+                    **decor_nogroup
+                    ), 
                 widget.TaskList(
                        highlight_method="block",
                        border=colors[8],
                        borderwidth=0,
                        background = colors[4],
-                       icon_size = 40,
-                       fontsize= 25,
+                       icon_size = 50,
+                       fontsize= 28,
                        rounded = True,
                        padding_x = 1,
-                       padding_y = 9,
+                       padding_y = 8,
                        margin_x= 5,
                        margin_y= 4,
                        spacing = 5,
@@ -552,90 +594,153 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(), 
+                widget.Image(
+                       filename="~/.config/qtile/assets/bar_icons/gpu.svg",
+                       background = colors[7],
+                       colour= colors[13],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'watch -n2 nvidia-smi\'")},  
+                       mask=True,
+                       padding = 10, 
+                       margin_y = 18, 
+                       adjust_y=0,
+                       adjust_x=5,
+                       **decor_general
+                ),
                 widget.NvidiaSensors(
                     font="Symbols Nerd Font Mono",
-                    format='  {temp}°C', 
-                    fontsize=22,
-                    padding=10, 
+                    #font="monospace",
+                    #format='  {temp}°C', 
+                    format='{temp}°C', 
+                    fontsize=26,
+                    padding=0, 
                     foreground=colors[13], 
                     background=colors[7],
                     update_interval=5, 
-                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c watch -n2 nvidia-smi\"")}, 
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'watch -n2 nvidia-smi\'")}, 
                     **decor_general
                     ),
+                widget.Image(
+                       filename="~/.config/qtile/assets/bar_icons/cpu.svg",
+                       background = colors[7],
+                       colour= colors[12],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                       mask=True,
+                       margin_y = 18,
+                       padding = 5, 
+                       adjust_x= 5,
+                       adjust_y=2, 
+                       **decor_general
+                ),
                 widget.CPU(
-                    font="Symbols Nerd Font Mono",
-                    format=" {load_percent:2.0f}%", 
-                    fontsize=22,
-                    padding=10,  
+                    #font="Symbols Nerd Font Mono",
+                    #font="FontAwesome",
+                    font="monospace",
+                    #format="{load_percent:3.0f}%", 
+                    format="{load_percent:2.0f}%", 
+                    fontsize=26,
+                    padding=5,  
                     foreground=colors[12],
                     background=colors[7],
                     update_interval=10,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
+                widget.Image(
+                       filename="~/.config/qtile/assets/bar_icons/memory.svg",
+                       background = colors[7],
+                       colour= colors[11],
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
+                       mask=True,
+                       padding=5,
+                       margin_y = 18, 
+                       adjust_x=2, 
+                       adjust_y=2, 
+                       **decor_general
+                ),
                 widget.Memory(
                     font="Symbols Nerd Font Mono",
-                    format=" {MemUsed:2.0f}{mm}", 
+                    #font="monospace",
+                    format="{MemUsed:2.0f}{mm}", 
+                    #format=" {MemUsed:2.0f}{mm} ", 
                     measure_mem='G', 
-                    fontsize=22,
-                    padding=10,  
+                    fontsize=26,
+                    padding=0,  
                     foreground=colors[11], 
                     background=colors[7], 
                     update_interval=5,
                     mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -e \"bash -c btop\"")},  
                     **decor_general),
+                widget.Spacer(length=12,background = colors[7],**decor_general),
                 widget.Spacer(length=10),
+                widget.AnalogueClock(
+                    margin=18,
+                    padding=10,
+                    hour_size= 2,
+                    hour_length=0.55,
+                    minute_size= 2,
+                    minute_length=0.55,
+                    background=colors[7], 
+                    hour_colour=colors[10],
+                    minute_colour=colors[10],
+                    face_border_colour=colors[10],
+                    face_shape='circle',
+                    face_border_width=3,
+                    update_interval=1,
+                    adjust_y=2,
+                    adjust_x=2,
+                    **decor_general, 
+                ),
+                #widget.Spacer(length=10),
                 widget.Clock( 
-                       padding = 10,
+                       font="Symbols Nerd Font Mono",
+                       padding = 0,
                        foreground = colors[10],
                        background=colors[7],
-                       fontsize = 22,
-                       format=" %H:%M",
+                       fontsize = 26,
+                       #format="  %H:%M",
+                       format="%H:%M",
                        **decor_general, 
                 ),
+                widget.Clock( 
+                       font="Symbols Nerd Font Mono",
+                       padding = 10,
+                       foreground = colors[14],
+                       background=colors[7],
+                       fontsize = 26,
+                       format="  %a-%d",
+                       **decor_general,
+                ),
            ],
-        55, background=colors[4], margin = [0,3,0,10],
+        70, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),                       
                        wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-6k3oox.jpg",
+                       #wallpaper="~/.config/qtile/assets/wallpaper2/wallhaven-y8kzjk.jpg",
                        wallpaper_mode="fill",
         ),
-        
+         
     Screen(
         top=bar.Bar(
             [
-                widget.CurrentLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
-                widget.Spacer(10), 
-                widget.GroupBox(
-                       font="Symbols Nerd Font Mono",
-                       #font="FontAwesome",
-                       fontsize = 31,
-                       margin_x = 10,
-                       spacing = 6,
-                       margin_y = 4,
-                       padding_x = 4,
-                       padding_y = 4,
-                       disable_drag = True,
-                       active = colors[3],
-                       inactive = colors[2],
-                       this_current_screen_border = colors[3],
-                       this_screen_border=colors[3],
-                       highlight_method='border',
-                       borderwidth = 2,
-                       visible_groups=['7', '8', '9'],
-                       **decor_side
-                ),
+                svgLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
+                widget.Spacer(10),
+                modify(
+                    padGroupBox,
+                    visible_groups=['7', '8', '9'],
+                    padding_y= 11, 
+                    **box_main, 
+                    **decor_nogroup
+                    ),  
                 widget.TaskList(
                        highlight_method="block",
                        border=colors[8],
                        borderwidth=0,
                        background = colors[4],
-                       icon_size = 40,
-                       fontsize=25,
+                       icon_size = 50,
+                       fontsize= 28,
                        rounded = True,
                        padding_x = 1,
-                       padding_y = 9,
+                       padding_y = 8,
                        margin_x= 5,
                        margin_y= 4,
                        spacing = 5,
@@ -647,12 +752,13 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(),
-                widget.Net(
+                modify(
+                       FormatNet,
                        font="Symbols Nerd Font Mono",
                        padding=0,
                        foreground = colors[16],
                        background=colors[7],
-                       fontsize = 22,
+                       fontsize = 26,
                        prefix ='M',
                        interface='eno2',
                        use_bits=False,
@@ -673,28 +779,56 @@ screens = [
                        samples=40,
                        **decor_general,
                        ),
-                widget.Spacer(10), 
-                #widget.NvidiaSensors(format=':{temp}°C', fontsize=22, foreground=colors[13], background=colors[7],update_interval=5, **decor_general),
-                #widget.CPU(format=":{load_percent:2.0f}%", fontsize=22, foreground=colors[12],background=colors[7],update_interval=5, **decor_general),
-                #widget.Memory(format="﬙:{MemUsed:2.0f}{mm}", measure_mem='G', fontsize=22, foreground=colors[11], background=colors[7], update_interval=5, **decor_general),
-                #widget.Spacer(length=10),
+                widget.Spacer(length=10),
+                widget.AnalogueClock(
+                    margin=18,
+                    padding=10,
+                    hour_size= 2,
+                    hour_length=0.55,
+                    minute_size= 2,
+                    minute_length=0.55,
+                    background=colors[7], 
+                    hour_colour=colors[10],
+                    minute_colour=colors[10],
+                    face_border_colour=colors[10],
+                    face_shape='circle',
+                    face_border_width=3,
+                    update_interval=1,
+                    adjust_y=2,
+                    adjust_x=2,
+                    **decor_general, 
+                ),
                 widget.Clock( 
-                       padding = 10,
+                       font="Symbols Nerd Font Mono",
+                       padding = 0,
                        foreground = colors[10],
                        background=colors[7],
-                       fontsize = 22,
-                       format=" %H:%M",
+                       fontsize = 26,
+                       #format="  %H:%M",
+                       format="%H:%M",
                        **decor_general, 
+                ),
+                widget.Clock( 
+                       font="Symbols Nerd Font Mono",
+                       padding = 10,
+                       foreground = colors[14],
+                       background=colors[7],
+                       fontsize = 26,
+                       format="  %a-%d",
+                       **decor_general,
                 ),
  
            ],
-        55, background=colors[4], margin = [0,3,0,10],
+        70, background=colors[4], margin = [0,3,0,10],
         border_width=[0, 0, 0, 0],  # Draw top and bottom borders
         border_color=["#45475a", "#45475a", "#45475a", "#45475a"]  # Borders are magenta
         ),
-                       wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-qde11d.jpg",
+                       #wallpaper="~/.config/qtile/assets/wallpaper/wallhaven-6k3oox.jpg",
+                       wallpaper="~/.config/qtile/assets/wallpaper2/wallhaven-pkxqpm.jpg",
                        wallpaper_mode="stretch",
     ),   
+    
+
 ]
 
 # Layout configuration
@@ -814,7 +948,7 @@ def assign_groups_to_screens():
 		try:
 			qtile.groups_map["1"].toscreen(0)
 			qtile.groups_map["4"].toscreen(1)
-			qtile.groups_map["7"].toscreen(2, toggle=True)
+			qtile.groups_map["8"].toscreen(2, toggle=False)
 		except IndexError:
 			pass
 
@@ -849,7 +983,7 @@ def _unswallow(window):
 
 # Handle applications launched by either Thunderbird / Deluge / Steam on screen 2 (with some specifics)
 @hook.subscribe.client_managed
-async def _screen0(window):
+async def _screen2(window):
     wm_class = window.window.get_wm_class()
     w_name = window.window.get_name()
     #logger.warning(wm_class)
@@ -859,7 +993,7 @@ async def _screen0(window):
             window.kill()
         elif w_name =="EVE Launcher":
             window.togroup("9")
-            #window.set_size_floating(901,946)
+            window.set_size_floating(901,946)
             window.center()
             window.bring_to_front()
         elif w_name == "EVE":

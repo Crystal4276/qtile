@@ -40,7 +40,7 @@ def show_power_menu(qtile):
             height=0.15,
             highlight_method='image',
             highlight_filename="~/.config/qtile/assets/lock_blur.svg",
-            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')}
+            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim')}
         ),
         PopupText(
             text="Lock",
@@ -53,7 +53,7 @@ def show_power_menu(qtile):
             foreground=colors[15],
             h_align="center",
             can_focus=False,
-            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim -- --time-str="%H:%M"')}
+            mouse_callbacks={"Button1": lazy.spawn('betterlockscreen -l dim')}
         ),
         PopupImage(
             filename="~/.config/qtile/assets/logout.svg",
