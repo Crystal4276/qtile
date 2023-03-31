@@ -7,17 +7,14 @@ from libqtile import bar, layout, hook, qtile
 from libqtile.log_utils import logger
 from libqtile.config import Click, Drag, Group, Key, KeyChord, Match, Screen, Rule, DropDown
 from libqtile.lazy import lazy
-from libqtile.widget import Spacer
+#from libqtile.widget import Spacer
 
 from qtile_extras import widget
 from qtile_extras.widget.decorations import RectDecoration, PowerLineDecoration, BorderDecoration
 from qtile_extras.widget import modify
 
 from popups.power_menu import show_power_menu
-from widgets.svglayout import svgLayoutIcon
 from widgets.padgroupbox import padGroupBox
-from widgets.FormatNet import FormatNet
-
 
 
 # Parsing : remove all text.
@@ -260,6 +257,7 @@ decor_side = {
 
 box_main = {
             "font": 'Symbols Nerd Font Mono',
+            #"font": 'monospace',
             "fontsize": 35,
             "spacing": 5,
             "margin_y": 2,
@@ -278,7 +276,6 @@ box_main = {
             }
 
 screens = [
-            
     Screen(
         top=bar.Bar(
             [
@@ -291,7 +288,7 @@ screens = [
                        #**decor_nogroup
                 ),
                 widget.Spacer(length=12),  
-                svgLayoutIcon(
+                widget.CurrentLayoutIcon(
                        scale = 0.66, 
                        custom_icon_paths = ["~/.config/qtile/assets/layout"],
                        #use_mask = True, 
@@ -370,7 +367,7 @@ screens = [
                        filename="~/.config/qtile/assets/bar_icons/gpu.svg",
                        background = colors[7],
                        colour= colors[13],
-                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'watch -n2 nvidia-smi\'")},  
+                       mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'nvtop'")},  
                        mask=True,
                        padding = 10, 
                        margin_y = 18, 
@@ -388,7 +385,7 @@ screens = [
                     foreground=colors[13], 
                     background=colors[7],
                     update_interval=5, 
-                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'watch -n2 nvidia-smi\'")}, 
+                    mouse_callbacks ={"Button1": lazy.spawn("gnome-terminal -- sh -c 'nvtop'")}, 
                     **decor_general
                     ),
                 widget.Image(
@@ -511,7 +508,7 @@ screens = [
                        show_menu_icons=True,
                        background=colors[7],
                        highlight_colour=colors[3],
-                       menu_background=colors[7],
+                       menu_background=colors[9],
                        menu_foreground=colors[0],
                        menu_foreground_disabled=colors[2],
                        menu_icon_size=16,
@@ -565,7 +562,12 @@ screens = [
        Screen(
         top=bar.Bar(
             [
-                svgLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
+                widget.CurrentLayoutIcon(
+                       scale = 0.66, 
+                       custom_icon_paths = ["~/.config/qtile/assets/layout"],
+                       #use_mask = True, 
+                       #foreground=colors[3],
+                       ), 
                 widget.Spacer(10),
                 modify(padGroupBox,
                     visible_groups=['4', '5', '6'],
@@ -722,7 +724,12 @@ screens = [
     Screen(
         top=bar.Bar(
             [
-                svgLayoutIcon(scale = 0.66, custom_icon_paths = ["~/.config/qtile/assets/layout"]),
+                widget.CurrentLayoutIcon(
+                       scale = 0.66, 
+                       custom_icon_paths = ["~/.config/qtile/assets/layout"],
+                       #use_mask = True, 
+                       #foreground=colors[3],
+                       ), 
                 widget.Spacer(10),
                 modify(
                     padGroupBox,
@@ -752,8 +759,21 @@ screens = [
                        theme_mode="preferred",
                 ),
                 widget.Spacer(),
-                modify(
-                       FormatNet,
+                # ~ modify(
+                       # ~ FormatNet,
+                       # ~ font="Symbols Nerd Font Mono",
+                       # ~ padding=0,
+                       # ~ foreground = colors[16],
+                       # ~ background=colors[7],
+                       # ~ fontsize = 26,
+                       # ~ prefix ='M',
+                       # ~ interface='eno2',
+                       # ~ use_bits=False,
+                       # ~ format=" {up:4.1f}{up_suffix:<2} {down:4.1f}{down_suffix:<2}",
+                       # ~ #format=" {up} {down}",
+                       # ~ update_interval=5,
+                       # ~ **decor_general,
+                widget.Net(
                        font="Symbols Nerd Font Mono",
                        padding=0,
                        foreground = colors[16],
@@ -763,7 +783,6 @@ screens = [
                        interface='eno2',
                        use_bits=False,
                        format=" {up:4.1f}{up_suffix:<2} {down:4.1f}{down_suffix:<2}",
-                       #format=" {up} {down}",
                        update_interval=5,
                        **decor_general,
                        ),
@@ -955,8 +974,10 @@ def assign_groups_to_screens():
 # Activate VPN after startup. nm-applet needs to be loaded before attempting to connect to VPN. This is the reason of asyncio.sleep()
 @hook.subscribe.startup_complete
 async def start_vpn():
-	await asyncio.sleep(2)
-	qtile.spawn("nmcli con up Nederland-PPTP")
+    await asyncio.sleep(2)
+    qtile.spawn("nmcli con up Nederland-PPTP")
+    # ~ qtile.spawn("nmcli con down wg0")
+    # ~ qtile.spawn("nmcli con up wg0")
 
 # Swallow application launched from gnome terminal
 @hook.subscribe.client_new

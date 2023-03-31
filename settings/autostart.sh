@@ -14,6 +14,7 @@ blueman-applet &
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 openrazer-daemon &
 udiskie --appindicator &
+openrgb -p purple.orp &
 #run variety &
 #pamac-tray &
 #nitrogen --restore &
